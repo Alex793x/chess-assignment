@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: ${SPRING_APPLICATION_NAME}
+
+  cloud:
+    gateway:
+
+      routes:
+        - id: chess-backend
+          uri: http://${CHESS_BACKEND_HOST}:${CHESS_BACKEND_PORT}
+          predicates:
+            - Path=/api/v1/cb/**
+
+        - id: message-service-rsocket
+          uri: rsocket:ws://${CHESS_BACKEND_HOST}:${CHESS_BACKEND_PORT}/rsocket
+          predicates:
+            - Path=/rsocket
+
+        - id: chess-frontend
+          uri: http://${CHESS_FRONTEND_HOST}:${CHESS_FRONTEND_PORT}
+          predicates:
+            - Path=/_next/**, /_next/static/**, /static/**, /public/**, /media/**,
+              /*.css, /*.ts,/*.tsx, /*.jsx, /*.js, /*.woff2, /*.svg, /favicon.ico, /images/**, /home/*, /new-game/*, /profile/*,
+              /game/*, /access-denied/*, /, /*,
+
+  data:
+    redis:
+      connect-timeout: 2s
+      host: ${CHESS_REDIS_HOST}
+      port: ${CHESS_REDIS_PORT}
+      timeout: 1s
+    session:
+      timeout: 10m

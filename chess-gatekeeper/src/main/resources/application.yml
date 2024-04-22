@@ -1,0 +1,71 @@
+server:
+  port: 8080
+  netty:
+    connection-timeout: 2s
+    idle-timeout: 15s
+  shutdown: graceful
+
+spring:
+  application:
+    name: chess-gatekeeper
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:docker}
+
+  rsocket:
+    server:
+      transport: websocket
+      mapping-path: /rsocket
+
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
+
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: chess-gatekeeper
+            client-secret: ${KEYCLOAK_CLIENT_SECRET}
+            scope: openid, profile, roles
+            authorization-grant-type: authorization_code
+        provider:
+          keycloak:
+            issuer-uri: https://authenticate.intellioptima.com/auth/realms/IntelliOptima
+
+  cloud:
+    gateway:
+      httpclient:
+        pool:
+          type: elastic
+          max-idle-time: 15s
+          max-life-time: 60s
+
+
+
+      default-filters:
+        - SaveSession
+        - TokenRelay
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter:
+              replenishRate: 10
+              burstCapacity: 20
+              requestedTokens: 1
+
+        - name: Retry
+          args:
+            retries: 5
+            methods: GET
+            series: SERVER_ERROR
+            exceptions: java.io.IOException, java.util.concurrent.TimeoutException
+            backoff:
+              firstBackoff: 50ms
+              maxBackoff: 500ms
+              factor: 2
+              basedOnPreviousValue: false
+
+
+  observations:
+    key-values:
+      application: ${spring.application.name}

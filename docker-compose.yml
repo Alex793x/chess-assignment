@@ -1,0 +1,71 @@
+version: "3.8"
+networks:
+  chess-awesome:
+    name: chess-awesome
+
+volumes:
+  mysql-data: {}
+
+services:
+  chess-frontend:
+    container_name: chess-frontend
+    build:
+      context: ./chess-frontend
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+      - WATCHPACK_IGNORED_PATTERNS=/node_modules/,/\.svelte-kit/
+    volumes:
+      - ./chess-frontend:/app
+      - /app/node_modules
+      - /app/.svelte-kit
+    ports:
+      - "3000:3000"
+    networks:
+      - chess-awesome
+
+  chess-backend:
+    container_name: chess-backend
+    build:
+      context: ./chess-backend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8090:8090"
+    env_file:
+      - ./.env.docker-secrets
+    networks:
+      - chess-awesome
+
+  chess-gatekeeper:
+    container_name: chess-gatekeeper
+    build:
+      context: ./chess-gatekeeper
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=chess-gatekeeper
+      - CHESS_FRONTEND_HOST=chess-frontend
+      - CHESS_FRONTEND_PORT=3000
+      - CHESS_BACKEND_HOST=chess-backend
+      - CHESS_BACKEND_PORT=8090
+      - CHESS_REDIS_HOST=chess-redis
+      - CHESS_REDIS_PORT=6379
+    env_file:
+      - ./.env.docker-secrets
+    networks:
+      - chess-awesome
+  chess-redis:
+    image: redis:7.2.4
+    container_name: chess-redis
+    labels:
+      - "db=chess-redis"
+    ports:
+      - "6379:6379"
+    networks:
+      - chess-awesome
