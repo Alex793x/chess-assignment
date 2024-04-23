@@ -40,7 +40,12 @@
   },
   "type": "module",
   "dependencies": {
+    "@chrisoakman/chessboardjs": "^1.0.0",
+    "@types/chessboardjs": "^0.3.5",
+    "chess.js": "^1.0.0-beta.8",
+    "chessboardjs": "^0.0.1",
     "clsx": "^2.1.0",
+    "jquery": "^3.7.1",
     "tailwind-merge": "^2.3.0",
     "tailwind-variants": "^0.2.1"
   }
