@@ -1,7 +1,7 @@
 <script>
-
-import Chessboard from "@/components/Chessboard.svelte";
+	import Chessboard from '@/components/Chessboard.svelte';
 </script>
+
 <div>
-<Chessboard />
+	<Chessboard />
 </div>
