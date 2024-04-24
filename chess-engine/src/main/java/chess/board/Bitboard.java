@@ -51,22 +51,24 @@ public class Bitboard {
         whiteKing = whiteQueens = whiteRooks = whiteBishops = whiteKnights = whitePawns = 0L;
         blackKing = blackQueens = blackRooks = blackBishops = blackKnights = blackPawns = 0L;
 
-        // Process each rank, starting from the 8th rank (top of the board)
+        // Process each rank, starting from the 8th rank (top of the board) down to the 1st rank
         for (int rank = 0; rank < 8; rank++) {
-            int file = 7; // Start from the rightmost file (h-file) for horizontal mirroring
-            for (char ch : ranks[rank].toCharArray()) {
+            int file = 0; // Start from the leftmost file (a-file)
+            for (char ch : ranks[7 - rank].toCharArray()) { // Start from the last element to represent the 8th rank at the top
                 if (Character.isDigit(ch)) {
-                    file -= Character.getNumericValue(ch); // Decrement file index for empty squares
+                    file += Character.getNumericValue(ch); // Increment file index for empty squares
                 } else {
                     PieceType pieceType = PieceType.fromFENChar(ch);
                     PieceColor pieceColor = Character.isUpperCase(ch) ? PieceColor.WHITE : PieceColor.BLACK;
-                    int square = (7 - rank) * 8 + file; // Use adjusted rank and file for mirroring
+                    int square = rank * 8 + file; // Calculate square index based on rank and file
                     placePieceOnSquare(square, pieceType, pieceColor);
-                    file--; // Move leftwards after placing each piece
+                    file++; // Move rightwards after placing each piece
                 }
             }
         }
     }
+
+
 
 
 
@@ -80,8 +82,9 @@ public class Bitboard {
      * @param pieceColor The color of the piece to be placed (WHITE or BLACK).
      */
     public void placePieceOnSquare(int square, PieceType pieceType, PieceColor pieceColor) {
+        long mask = SQUARE_MASKS[square];  // For square 0, mask will be 0b1
         long bitboard = getBitboardForPieceTypeAndColor(pieceType, pieceColor);
-        bitboard |= SQUARE_MASKS[square];
+        bitboard |= mask;
         setBitboardForPieceTypeAndColor(pieceType, pieceColor, bitboard);
     }
 
@@ -93,8 +96,9 @@ public class Bitboard {
      * @param pieceColor The color of the piece to be removed (WHITE or BLACK).
      */
     public void removePieceFromSquare(int square, PieceType pieceType, PieceColor pieceColor) {
+        long mask = SQUARE_MASKS[square];
         long bitboard = getBitboardForPieceTypeAndColor(pieceType, pieceColor);
-        bitboard &= ~SQUARE_MASKS[square];
+        bitboard &= ~mask;
         setBitboardForPieceTypeAndColor(pieceType, pieceColor, bitboard);
     }
 
@@ -132,25 +136,41 @@ public class Bitboard {
      */
     public String convertBitboardToBinaryString() {
         StringBuilder sb = new StringBuilder();
-        for (int i = 63; i >= 0; i--) {
-            char piece = ' ';
-            if ((whiteKing & SQUARE_MASKS[i]) != 0) piece = 'K';
-            else if ((whiteQueens & SQUARE_MASKS[i]) != 0) piece = 'Q';
-            else if ((whiteRooks & SQUARE_MASKS[i]) != 0) piece = 'R';
-            else if ((whiteBishops & SQUARE_MASKS[i]) != 0) piece = 'B';
-            else if ((whiteKnights & SQUARE_MASKS[i]) != 0) piece = 'N';
-            else if ((whitePawns & SQUARE_MASKS[i]) != 0) piece = 'P';
-            else if ((blackKing & SQUARE_MASKS[i]) != 0) piece = 'k';
-            else if ((blackQueens & SQUARE_MASKS[i]) != 0) piece = 'q';
-            else if ((blackRooks & SQUARE_MASKS[i]) != 0) piece = 'r';
-            else if ((blackBishops & SQUARE_MASKS[i]) != 0) piece = 'b';
-            else if ((blackKnights & SQUARE_MASKS[i]) != 0) piece = 'n';
-            else if ((blackPawns & SQUARE_MASKS[i]) != 0) piece = 'p';
-            sb.append(piece).append(" ");
-            if (i % 8 == 0) sb.append("\n");
+        sb.append("     A    B    C    D    E    F    G    H\n");
+        sb.append("  +----+----+----+----+----+----+----+----+\n");
+
+        for (int rank = 7; rank >= 0; rank--) {
+            sb.append(rank + 1).append(" |");
+            for (int file = 0; file < 8; file++) {
+                int i = rank * 8 + file;
+                char piece = getPiece(i);
+                sb.append("  ").append(piece).append(" |");
+            }
+            sb.append("  ").append(rank + 1).append("th rank\n");
+            sb.append("  +----+----+----+----+----+----+----+----+\n");
         }
+
+        sb.append("     A    B    C    D    E    F    G    H - file(s)\n");
         return sb.toString();
     }
+
+    private char getPiece(int i) {
+        char piece = ' ';
+        if ((whiteKing & SQUARE_MASKS[i]) != 0) piece = 'K';
+        else if ((whiteQueens & SQUARE_MASKS[i]) != 0) piece = 'Q';
+        else if ((whiteRooks & SQUARE_MASKS[i]) != 0) piece = 'R';
+        else if ((whiteBishops & SQUARE_MASKS[i]) != 0) piece = 'B';
+        else if ((whiteKnights & SQUARE_MASKS[i]) != 0) piece = 'N';
+        else if ((whitePawns & SQUARE_MASKS[i]) != 0) piece = 'P';
+        else if ((blackKing & SQUARE_MASKS[i]) != 0) piece = 'k';
+        else if ((blackQueens & SQUARE_MASKS[i]) != 0) piece = 'q';
+        else if ((blackRooks & SQUARE_MASKS[i]) != 0) piece = 'r';
+        else if ((blackBishops & SQUARE_MASKS[i]) != 0) piece = 'b';
+        else if ((blackKnights & SQUARE_MASKS[i]) != 0) piece = 'n';
+        else if ((blackPawns & SQUARE_MASKS[i]) != 0) piece = 'p';
+        return piece;
+    }
+
 
     /**
      * Retrieves the appropriate bitboard for the given piece type and color.
@@ -168,6 +188,7 @@ public class Bitboard {
             case BISHOP -> pieceColor == PieceColor.WHITE ? whiteBishops : blackBishops;
             case KNIGHT -> pieceColor == PieceColor.WHITE ? whiteKnights : blackKnights;
             case PAWN -> pieceColor == PieceColor.WHITE ? whitePawns : blackPawns;
+            default -> throw new IllegalArgumentException("Unknown piece type: " + pieceType);
         };
     }
 
@@ -181,30 +202,13 @@ public class Bitboard {
      */
     private void setBitboardForPieceTypeAndColor(PieceType pieceType, PieceColor pieceColor, long bitboard) {
         switch (pieceType) {
-            case KING -> {
-                if (pieceColor == PieceColor.WHITE) whiteKing = bitboard;
-                else blackKing = bitboard;
-            }
-            case QUEEN -> {
-                if (pieceColor == PieceColor.WHITE) whiteQueens = bitboard;
-                else blackQueens = bitboard;
-            }
-            case ROOK -> {
-                if (pieceColor == PieceColor.WHITE) whiteRooks = bitboard;
-                else blackRooks = bitboard;
-            }
-            case BISHOP -> {
-                if (pieceColor == PieceColor.WHITE) whiteBishops = bitboard;
-                else blackBishops = bitboard;
-            }
-            case KNIGHT -> {
-                if (pieceColor == PieceColor.WHITE) whiteKnights = bitboard;
-                else blackKnights = bitboard;
-            }
-            case PAWN -> {
-                if (pieceColor == PieceColor.WHITE) whitePawns = bitboard;
-                else blackPawns = bitboard;
-            }
+            case KING:   if (pieceColor == PieceColor.WHITE) whiteKing = bitboard; else blackKing = bitboard; break;
+            case QUEEN:  if (pieceColor == PieceColor.WHITE) whiteQueens = bitboard; else blackQueens = bitboard; break;
+            case ROOK:   if (pieceColor == PieceColor.WHITE) whiteRooks = bitboard; else blackRooks = bitboard; break;
+            case BISHOP: if (pieceColor == PieceColor.WHITE) whiteBishops = bitboard; else blackBishops = bitboard; break;
+            case KNIGHT: if (pieceColor == PieceColor.WHITE) whiteKnights = bitboard; else blackKnights = bitboard; break;
+            case PAWN:   if (pieceColor == PieceColor.WHITE) whitePawns = bitboard; else blackPawns = bitboard; break;
+            default: throw new IllegalArgumentException("Unknown piece type: " + pieceType);
         }
     }
 }
