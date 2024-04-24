@@ -98,4 +98,5 @@ public class Board {
     public boolean isWhite() {
         return currentPlayer == PieceColor.WHITE;
     }
+
 }
