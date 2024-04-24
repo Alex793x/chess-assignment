@@ -3,6 +3,7 @@ package org.kea.chess.board;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.kea.chess.board.enums.GamePhase;
 import org.kea.chess.engine.move_validation.service.MoveValidator;
 import org.kea.chess.engine.move_validation.interfaces.PieceValidator;
 import org.kea.chess.board.enums.PieceColor;
@@ -15,6 +16,7 @@ public final class Board {
 
     private Bitboard bitboard;
     private PieceColor currentPlayer;
+    private GamePhase gamePhase;
     private boolean check;
     private boolean checkmate;
 

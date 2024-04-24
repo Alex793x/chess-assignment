@@ -1,8 +1,10 @@
 package org.kea.chess.board.enums;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum PieceType {
     PAWN(82, 94),
     KNIGHT(337, 281),
@@ -13,10 +15,5 @@ public enum PieceType {
 
     private final int midGameValue;
     private final int endGameValue;
-
-    PieceType(int midGameValue, int endGameValue) {
-        this.midGameValue = midGameValue;
-        this.endGameValue = endGameValue;
-    }
 
 }
