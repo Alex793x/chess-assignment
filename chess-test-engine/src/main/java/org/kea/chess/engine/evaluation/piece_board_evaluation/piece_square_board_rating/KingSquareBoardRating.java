@@ -2,8 +2,6 @@ package org.kea.chess.engine.evaluation.piece_board_evaluation.piece_square_boar
 
 public final class KingSquareBoardRating {
 
-
-
     /**
      *  Source: <a href="https://www.talkchess.com/forum3/viewtopic.php?f=2&t=68311&start=19">talkchess</a>
      *  King midgame
