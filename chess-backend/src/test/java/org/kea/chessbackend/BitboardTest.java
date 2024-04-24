@@ -8,7 +8,6 @@ import org.kea.chessbackend.chess.models.enums.PieceType;
 import java.util.Arrays;
 import java.util.BitSet;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BitboardTest {
