@@ -109,7 +109,7 @@
                            {selectedSquare !== null &&
 					selectedSquare.x === x &&
 					selectedSquare.y === y
-						? 'bg-[#E2FF5A]'
+						? 'bg-[#E2FF5B]'
 						: ''}
                         "
 					on:click={() => selectSquare(x, y)}
