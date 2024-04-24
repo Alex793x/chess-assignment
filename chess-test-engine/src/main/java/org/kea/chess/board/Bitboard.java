@@ -42,6 +42,72 @@ public class Bitboard {
         blackPawns = new BitSet(64);
     }
 
+    public BitSet[] loadFEN(String fen) {
+        String[] parts = fen.split(" ");
+        String[] rows = parts[0].split("/");
+
+        BitSet[] bitboards = new BitSet[] {
+                whiteKing, whiteQueens, whiteRooks, whiteBishops, whiteKnights, whitePawns,
+                blackKing, blackQueens, blackRooks, blackBishops, blackKnights, blackPawns
+        };
+
+        // Names for the bitboards for logging purposes
+        String[] bitboardNames = new String[] {
+                "White King", "White Queens", "White Rooks", "White Bishops", "White Knights", "White Pawns",
+                "Black King", "Black Queens", "Black Rooks", "Black Bishops", "Black Knights", "Black Pawns"
+        };
+
+        // Clear all bitboards
+        for (BitSet bitboard : bitboards) {
+            bitboard.clear();
+        }
+        System.out.println("All bitboards cleared.");
+
+        // Process each row for piece placement
+        for (int i = 0; i < rows.length; i++) {
+            // Calculate the starting square for the current row
+            int square = 64 - 8 * (i + 1);
+            System.out.println("Processing row: " + (8 - i) + " with data: " + rows[i]);
+            // Process each piece in the row
+            for (char piece : rows[i].toCharArray()) {
+                // Check if the character is a digit (empty squares)
+                if (Character.isDigit(piece)) {
+                    // Calculate the number of empty squares
+                    int emptySpaces = Character.getNumericValue(piece);
+                    System.out.println("Skipping " + emptySpaces + " empty spaces starting from square " + square);
+                    square += emptySpaces; // Skip empty squares
+                } else {
+                    // Place the piece on the square
+                    placePieceOnSquare(square, PieceType.fromFENChar(piece), PieceColor.fromFENChar(piece));
+                    System.out.println("Placed " + piece + " at square " + square);
+                    square++;
+                }
+            }
+        }
+
+        // Optional FEN parts with defaults if they are missing
+        String activeColor = parts.length > 1 ? parts[1] : "w";
+        String castlingAvailability = parts.length > 2 ? parts[2] : "-";
+        String enPassantTarget = parts.length > 3 ? parts[3] : "-";
+        int halfMoveClock = parts.length > 4 ? Integer.parseInt(parts[4]) : 0;
+        int fullMoveNumber = parts.length > 5 ? Integer.parseInt(parts[5]) : 1;
+
+        // Log additional FEN info
+        System.out.println("Active color: " + activeColor);
+        System.out.println("Castling rights: " + castlingAvailability);
+        System.out.println("En passant target square: " + enPassantTarget);
+        System.out.println("Halfmove clock: " + halfMoveClock);
+        System.out.println("Fullmove number: " + fullMoveNumber);
+
+        // Log the final state of each bitboard with their names
+        for (int j = 0; j < bitboards.length; j++) {
+            System.out.println(bitboardNames[j] + ": " + bitboards[j]);
+        }
+
+        // Return the array of bitboards
+        return bitboards;
+    }
+
 
     /**
      * Places a piece of the specified type and color on the given square of the chessboard.
