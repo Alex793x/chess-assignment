@@ -37,4 +37,17 @@ public class MoveGenerator {
         return moves;
     }
 
+    public void moveKing(int fromSquare, int toSquare, PieceColor color) throws Exception {
+        List<Integer> validMoves = generateMovesForKing(fromSquare, color);
+
+        if (validMoves.contains(toSquare)) {
+            // Assuming you have methods to directly manipulate the board
+            board.getBitboard().removePieceFromSquare(fromSquare, PieceType.KING, color);
+            board.getBitboard().placePieceOnSquare(toSquare, PieceType.KING, color);
+            System.out.println("Move successful: King moved from " + fromSquare + " to " + toSquare);
+        } else {
+            throw new Exception("Invalid move: King cannot move from " + fromSquare + " to " + toSquare);
+        }
+    }
+
 }

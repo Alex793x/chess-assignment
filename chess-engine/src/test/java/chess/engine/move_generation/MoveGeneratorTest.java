@@ -115,6 +115,20 @@ class MoveGeneratorTest {
     }
 
 
+    @Test
+    void moveKingTest() {
+        board.getBitboard().placePieceOnSquare(4, PieceType.KING, PieceColor.WHITE);
+        board.getBitboard().placePieceOnSquare(18, PieceType.ROOK, PieceColor.BLACK);
+        System.out.println(board.getBitboard().convertBitboardToBinaryString());
+        try {
+            moveGenerator.moveKing(4, 24, PieceColor.WHITE);
+            System.out.println(board.getBitboard().convertBitboardToBinaryString());
+        } catch (Exception e) {
+            fail("King Kan not move to square outside the available moves");
+        }
+    }
+
+
 
 
 }
