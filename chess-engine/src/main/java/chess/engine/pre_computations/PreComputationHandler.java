@@ -93,24 +93,20 @@ public final class PreComputationHandler {
     }
 
     private static void calculateKingAttacks() {
-        // Pre-compute the attacks for each square
         for (int square = 0; square < 64; square++) {
             long attacks = 0L;
+
+            int row = square / 8, col = square % 8;
             for (int offset : KingValidator.KING_OFFSETS) {
-                int destSquare = square + offset;
+                int toSquare = square + offset;
+                int newRow = toSquare / 8, newCol = toSquare % 8;
 
-                // Stop iterating when one square away in any direction
-                if (Math.abs(destSquare / 8 - square / 8) > 1 ||
-                        Math.abs(destSquare % 8 - square % 8) > 1) {
-                    break;
-                }
-
-                // Mark attackable square within bounds
-                if (PieceValidator.isWithinBoardBounds(destSquare)) {
-                    attacks |= (1L << destSquare);
+                // Validate toSquare is within bounds and doesn't wrap around
+                if (toSquare >= 0 && toSquare < 64 && Math.abs(newCol - col) <= 1 && Math.abs(newRow - row) <= 1) {
+                    attacks |= 1L << toSquare;
                 }
             }
-            PreComputationHandler.KING_ATTACKS[square] = attacks;
+            KING_ATTACKS[square] = attacks;
         }
     }
 

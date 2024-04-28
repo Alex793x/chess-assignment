@@ -172,6 +172,7 @@ public class Bitboard {
     }
 
 
+
     /**
      * Retrieves the appropriate bitboard for the given piece type and color.
      *
@@ -210,5 +211,12 @@ public class Bitboard {
             case PAWN:   if (pieceColor == PieceColor.WHITE) whitePawns = bitboard; else blackPawns = bitboard; break;
             default: throw new IllegalArgumentException("Unknown piece type: " + pieceType);
         }
+    }
+
+    public long getOccupancies(PieceColor color) {
+        return switch (color) {
+            case WHITE -> whiteKing | whiteQueens | whiteRooks | whiteBishops | whiteKnights | whitePawns;
+            case BLACK -> blackKing | blackQueens | blackRooks | blackBishops | blackKnights | blackPawns;
+        };
     }
 }
