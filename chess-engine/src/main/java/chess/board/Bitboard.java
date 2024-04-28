@@ -69,11 +69,6 @@ public class Bitboard {
     }
 
 
-
-
-
-
-
     /**
      * Places a piece of the specified type and color on the given square of the chessboard.
      *
@@ -219,4 +214,6 @@ public class Bitboard {
             case BLACK -> blackKing | blackQueens | blackRooks | blackBishops | blackKnights | blackPawns;
         };
     }
+
+
 }

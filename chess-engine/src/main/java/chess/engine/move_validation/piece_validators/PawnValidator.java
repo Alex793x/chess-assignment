@@ -70,4 +70,7 @@ public final class PawnValidator {
 
         return pieceType == PieceType.PAWN && pieceColor == playerColor;
     }
+
+
+
 }
