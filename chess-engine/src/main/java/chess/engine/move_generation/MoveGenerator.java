@@ -74,4 +74,73 @@ public class MoveGenerator {
         }
     }
 
+
+    // PAWN MOVE GENERATION
+
+
+    public List<Integer> generateMovesForPawn(int square, PieceColor color) {
+        List<Integer> moves = new ArrayList<>();
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
+        long enemyOccupancies = board.getBitboard().getOccupancies(color == PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE);
+
+        int direction = color == PieceColor.WHITE ? 1 : -1;
+        int startRow = color == PieceColor.WHITE ? 1 : 6;
+        int oneStepForward = square + 8 * direction;
+        int twoStepsForward = square + 16 * direction;
+        int leftCapture = square + 7 * direction;
+        int rightCapture = square + 9 * direction;
+
+        // Check forward move
+        if (isSquareEmpty(oneStepForward, allOccupancies)) {
+            moves.add(oneStepForward);
+
+            // Check if two-step forward move is possible
+            if ((color == PieceColor.WHITE && (square / 8) == 1) ||
+                    (color == PieceColor.BLACK && (square / 8) == 6)) {
+                if (isSquareEmpty(twoStepsForward, allOccupancies)) {
+                    moves.add(twoStepsForward);
+                }
+            }
+        }
+
+        // Check captures
+        if (isWithinBoardBounds(leftCapture) &&
+                isSquareOccupiedByEnemy(leftCapture, enemyOccupancies)) {
+            moves.add(leftCapture);
+        }
+        if (isWithinBoardBounds(rightCapture) &&
+                isSquareOccupiedByEnemy(rightCapture, enemyOccupancies)) {
+            moves.add(rightCapture);
+        }
+
+        return moves;
+    }
+
+    private boolean isSquareEmpty(int square, long allOccupancies) {
+        return (allOccupancies & (1L << square)) == 0;
+    }
+
+    private boolean isSquareOccupiedByEnemy(int square, long enemyOccupancies) {
+        return (enemyOccupancies & (1L << square)) != 0;
+    }
+
+    private boolean isWithinBoardBounds(int square) {
+        return square >= 0 && square < 64; // Optionally, include file wrapping checks
+    }
+
+
+    public void movePawn(int fromSquare, int toSquare, PieceColor color) throws Exception {
+        List<Integer> validMoves = generateMovesForPawn(fromSquare, color);
+
+        if (validMoves.contains(toSquare)) {
+            // Perform the move on the board
+            board.getBitboard().removePieceFromSquare(fromSquare, PieceType.PAWN, color);
+            board.getBitboard().placePieceOnSquare(toSquare, PieceType.PAWN, color);
+            System.out.println("Move successful: Pawn moved from " + fromSquare + " to " + toSquare);
+        } else {
+            // If the move is not valid, throw an exception detailing the issue
+            throw new Exception("Invalid move: Pawn cannot move from " + fromSquare + " to " + toSquare);
+        }
+    }
+
 }
