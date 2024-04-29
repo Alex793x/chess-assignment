@@ -6,7 +6,7 @@ import chess.board.Bitboard;
 import chess.board.Board;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
-import chess.engine.move_generation.MoveGenerator;
+import chess.engine.exception.IllegalMoveException;
 import chess.engine.pre_computations.PreComputationHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,12 +16,15 @@ import java.util.List;
 
 class MoveGeneratorTest {
     private Board board;
-    private MoveGenerator moveGenerator;
+    private KingMoveGenerator kingMoveGenerator;
+
+    private PawnMoveGenerator pawnMoveGenerator;
 
     @BeforeEach
     void setUp() {
         board = new Board();
-        moveGenerator = new MoveGenerator(board);
+        kingMoveGenerator = new KingMoveGenerator(board);
+        pawnMoveGenerator = new PawnMoveGenerator(board);
         clearBoard();
     }
 
@@ -47,7 +50,7 @@ class MoveGeneratorTest {
     void testKingMovesCenter() {
         // Place a knight at d4 (27)
         board.getBitboard().placePieceOnSquare(27, PieceType.KING, PieceColor.WHITE);
-        List<Integer> moves = moveGenerator.generateMovesForKing(27, PieceColor.WHITE);
+        List<Integer> moves = kingMoveGenerator.generateMovesForKing(27, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
         // Expect moves to be 18, 19, 20, 26, 28, 34, 35, 36
@@ -66,7 +69,7 @@ class MoveGeneratorTest {
     @Test
     void testKingMovesE1() {
         board.getBitboard().placePieceOnSquare(4, PieceType.KING, PieceColor.WHITE);
-        List<Integer> moves = moveGenerator.generateMovesForKing(4, PieceColor.WHITE);
+        List<Integer> moves = kingMoveGenerator.generateMovesForKing(4, PieceColor.WHITE);
         System.out.println("King Attacks Bitboard for 4: " + Long.toBinaryString(PreComputationHandler.KING_ATTACKS[4]));
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -78,7 +81,7 @@ class MoveGeneratorTest {
     @Test
     void testKingMovesH1() {
         board.getBitboard().placePieceOnSquare(7, PieceType.KING, PieceColor.WHITE);
-        List<Integer> moves = moveGenerator.generateMovesForKing(7, PieceColor.WHITE);
+        List<Integer> moves = kingMoveGenerator.generateMovesForKing(7, PieceColor.WHITE);
         System.out.println("King Attacks Bitboard for 7: " + Long.toBinaryString(PreComputationHandler.KING_ATTACKS[7]));
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -92,7 +95,7 @@ class MoveGeneratorTest {
     void testKingMovesG1WithRookAtH1() {
         board.getBitboard().placePieceOnSquare(6, PieceType.KING, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(7, PieceType.ROOK, PieceColor.WHITE);
-        List<Integer> moves = moveGenerator.generateMovesForKing(6, PieceColor.WHITE);
+        List<Integer> moves = kingMoveGenerator.generateMovesForKing(6, PieceColor.WHITE);
         System.out.println("King Attacks Bitboard for 6: " + Long.toBinaryString(PreComputationHandler.KING_ATTACKS[6]));
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -105,7 +108,7 @@ class MoveGeneratorTest {
     void testKingMovesG1WithEnemyRookAtH1() {
         board.getBitboard().placePieceOnSquare(6, PieceType.KING, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(7, PieceType.ROOK, PieceColor.BLACK);
-        List<Integer> moves = moveGenerator.generateMovesForKing(6, PieceColor.WHITE);
+        List<Integer> moves = kingMoveGenerator.generateMovesForKing(6, PieceColor.WHITE);
         System.out.println("King Attacks Bitboard for 6: " + Long.toBinaryString(PreComputationHandler.KING_ATTACKS[6]));
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -116,26 +119,29 @@ class MoveGeneratorTest {
 
 
     @Test
-    void moveKingTest() {
+    void moveKingInvalidMoveTest() {
         board.getBitboard().placePieceOnSquare(4, PieceType.KING, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(18, PieceType.ROOK, PieceColor.BLACK);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
-        try {
-            moveGenerator.moveKing(4, 24, PieceColor.WHITE);
-            System.out.println(board.getBitboard().convertBitboardToBinaryString());
-        } catch (Exception e) {
-            fail("King Kan not move to square outside the available moves");
-        }
+
+        IllegalMoveException exception = assertThrows(IllegalMoveException.class, () -> {
+            kingMoveGenerator.moveKing(4, 24, PieceColor.WHITE);
+        });
+
+        assertEquals("Invalid move: King cannot move from 4 to 24", exception.getMessage());
+
+        System.out.println(board.getBitboard().convertBitboardToBinaryString());
     }
+
 
 
     @Test
     void testPawnSingleForwardMove() throws Exception {
         // Place a white pawn at e2 (index 12)
         board.getBitboard().placePieceOnSquare(12, PieceType.PAWN, PieceColor.WHITE);
-        List<Integer> moves = moveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
+        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
-        moveGenerator.movePawn(12, 20, PieceColor.WHITE);
+        pawnMoveGenerator.movePawn(12, 20, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
         // Expect the pawn to move to e3 (index 20)
@@ -148,9 +154,9 @@ class MoveGeneratorTest {
     void testPawnInitialDoubleForwardMove() throws Exception {
         // Place a white pawn at e2 (index 12)
         board.getBitboard().placePieceOnSquare(12, PieceType.PAWN, PieceColor.WHITE);
-        List<Integer> moves = moveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
+        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
-        moveGenerator.movePawn(12, 28, PieceColor.WHITE);
+        pawnMoveGenerator.movePawn(12, 28, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
         // Expect the pawn to also have the option to move to e4 (index 28)
@@ -164,10 +170,10 @@ class MoveGeneratorTest {
         board.getBitboard().placePieceOnSquare(28, PieceType.PAWN, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(37, PieceType.PAWN, PieceColor.BLACK);
 
-        List<Integer> moves = moveGenerator.generateMovesForPawn(28, PieceColor.WHITE);
+        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(28, PieceColor.WHITE);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
-        moveGenerator.movePawn(28, 37, PieceColor.WHITE);
+        pawnMoveGenerator.movePawn(28, 37, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
         // Expect the pawn to be able to move to f5 (index 37)
@@ -176,20 +182,51 @@ class MoveGeneratorTest {
 
 
     @Test
-    void testPawnBlockedMove() throws Exception {
-        // Place a white pawn at e2 and a black piece at e3
+    void testPawnBlockedMove() {
+
         board.getBitboard().placePieceOnSquare(12, PieceType.PAWN, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(20, PieceType.ROOK, PieceColor.BLACK);
 
-        List<Integer> moves = moveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
+        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
-        moveGenerator.movePawn(12, 20, PieceColor.WHITE);
+
+        // Attempt to make the blocked move
+        Exception exception = assertThrows(IllegalMoveException.class, () -> {
+            pawnMoveGenerator.movePawn(12, 20, PieceColor.WHITE);
+        });
+
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
-        // Pawn should not be able to move forward to e3
+        // Pawn should not be able to move forward to e3 as it is blocked
         assertFalse(moves.contains(20), "Pawn should not move forward to e3 as it is blocked.");
+
+        assertEquals("Invalid move: Pawn cannot move from 12 to 20", exception.getMessage());
     }
+
+    @Test
+    void testPawnBlockedMoveOverEnemy() {
+
+        board.getBitboard().placePieceOnSquare(12, PieceType.PAWN, PieceColor.WHITE);
+        board.getBitboard().placePieceOnSquare(20, PieceType.ROOK, PieceColor.BLACK);
+
+        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
+
+        System.out.println(board.getBitboard().convertBitboardToBinaryString());
+
+        // Attempt to make the blocked move
+        Exception exception = assertThrows(IllegalMoveException.class, () -> {
+            pawnMoveGenerator.movePawn(12, 28, PieceColor.WHITE);
+        });
+
+        System.out.println(board.getBitboard().convertBitboardToBinaryString());
+
+        // Pawn should not be able to move forward to e3 as it is blocked
+        assertFalse(moves.contains(28), "Pawn should not move forward to e3 as it is blocked.");
+
+        assertEquals("Invalid move: Pawn cannot move from 12 to 28", exception.getMessage());
+    }
+
 
 
 
