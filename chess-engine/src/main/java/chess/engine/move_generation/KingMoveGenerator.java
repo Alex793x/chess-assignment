@@ -61,7 +61,7 @@ public class KingMoveGenerator {
      * @param fromSquare the current square index of the king.
      * @param toSquare the target square index to move the king to.
      * @param color the color of the king (PieceColor.WHITE or PieceColor.BLACK).
-     * @throws Exception if the move is not valid, with a message explaining why.
+     * @throws IllegalMoveException if the move is not valid, with a message explaining why.
      */
     public void moveKing(int fromSquare, int toSquare, PieceColor color) {
         List<Integer> validMoves = generateMovesForKing(fromSquare, color);

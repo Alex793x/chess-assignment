@@ -16,8 +16,8 @@ public final class PreComputationHandler {
     public static final long[] KING_ATTACKS = new long[64];
 
     static {
-        calculatePawnAttacks(PieceColor.WHITE, PawnValidator.WHITE_PAWN_ATTACK_OFFSETS, WHITE_PAWN_ATTACKS);
-        calculatePawnAttacks(PieceColor.BLACK, PawnValidator.BLACK_PAWN_ATTACK_OFFSETS, BLACK_PAWN_ATTACKS);
+        calculatePawnAttacks(PawnValidator.WHITE_PAWN_ATTACK_OFFSETS, WHITE_PAWN_ATTACKS);
+        calculatePawnAttacks(PawnValidator.BLACK_PAWN_ATTACK_OFFSETS, BLACK_PAWN_ATTACKS);
         calculateKnightAttacks();
         slidingPieceAttackComputation(BishopValidator.BISHOP_OFFSETS, BISHOP_ATTACKS);
         slidingPieceAttackComputation(RookValidator.ROOK_OFFSETS, ROOK_ATTACKS);
@@ -26,16 +26,32 @@ public final class PreComputationHandler {
     }
 
     /**
-     * Precomputes the pawn attacks for each square and stores them in the respective attack arrays.
+     * Precomputes the pawn attacks for each square on a chess board based on the pawn's color
+     * and stores the results in the provided array. This method calculates potential attack
+     * positions for a pawn standing on any square from 0 (a1) to 63 (h8), considering the chess
+     * board's boundaries and avoiding "wrapping" attacks from one side of the board to the other.
      *
-     * @param playerColor     The color of the pawn (WHITE or BLACK).
-     * @param attackOffsets   The attack offsets for the given pawn color.
-     * @param attacksArray    The array to store the precomputed pawn attacks.
+     * @param attackOffsets The directional offsets defining the pawn's attack pattern. These
+     *                      offsets should reflect the pawn's movement capabilities, which differ
+     *                      based on color:
+     *                      - For WHITE pawns, typical values might be {7, 9} representing attacks
+     *                        to the northeast and northwest diagonally.
+     *                      - For BLACK pawns, typical values might be {-7, -9} for southwest and
+     *                        southeast diagonal attacks.
+     * @param attacksArray An array to store the precomputed attack bitboards for each square.
+     *                     Each bitboard is a 64-bit long, with a 1 in each position that a pawn
+     *                     on the given square can attack. The index of the array corresponds to
+     *                     the square number on a chessboard from 0 to 63.
+     *
+     * Example Usage:
+     *     long[] whitePawnAttacks = new long[64];
+     *     calculatePawnAttacks(PieceColor.WHITE, new int[] {7, 9}, whitePawnAttacks);
+     *     // whitePawnAttacks now contains the attack bitboards for white pawns on all squares.
      */
-    private static void calculatePawnAttacks(PieceColor playerColor, int[] attackOffsets, long[] attacksArray) {
+    private static void calculatePawnAttacks(int[] attackOffsets, long[] attacksArray) {
         for (int square = 0; square < 64; square++) {
             long attacks = 0L;
-            int file = square % 8;  // File calculation (A=0, B=1, ..., H=7)
+            int file = square % 8;
 
             for (int offset : attackOffsets) {
                 int destSquare = square + offset;
@@ -53,27 +69,31 @@ public final class PreComputationHandler {
         }
     }
 
-
-
     private static void calculateKnightAttacks() {
-        // Pre-compute the attacks for each square
+        int[] knightOffsets = KnightValidator.KNIGHT_OFFSETS;
         for (int square = 0; square < 64; square++) {
             long attacks = 0L;
-            for (int offset : KnightValidator.KNIGHT_OFFSETS) {
-                int destSquare = square + offset;
-
-                // Check if the destination square is within bounds and the move does not wrap around the board edges
-                int absoluteBoundary = Math.abs((destSquare % 8) - (square % 8));
-                if (PieceValidator.isWithinBoardBounds(destSquare) &&
-                        absoluteBoundary != 0 && // Ensure it does not wrap around
-                        Math.abs((destSquare / 8) - (square / 8)) <= 2 && // Within 2 rows
-                        absoluteBoundary <= 2) { // Within 2 columns
-                    attacks |= (1L << destSquare);
+            int rank = square / 8; // row
+            int file = square % 8; // column
+            for (int offset : knightOffsets) {
+                int target = square + offset;
+                if (target >= 0 && target < 64) { // Must be on the board
+                    int targetRank = target / 8; // target row
+                    int targetFile = target % 8; // target column
+                    // Check that the target does not wrap around the chessboard
+                    if (Math.abs(targetRank - rank) <= 2 && Math.abs(targetFile - file) <= 2 &&
+                            (Math.abs(targetFile - file) == 1 || Math.abs(targetFile - file) == 2)) {
+                        if (!(Math.abs(targetFile - file) == 2 && Math.abs(targetRank - rank) == 2)) {
+                            attacks |= (1L << target);
+                        }
+                    }
                 }
             }
             PreComputationHandler.KNIGHT_ATTACKS[square] = attacks;
         }
     }
+
+
 
     private static void slidingPieceAttackComputation(int[] pieceOffsets, long[] attacksArray) {
         for (int square = 0; square < 64; square++) {

@@ -74,9 +74,9 @@ public class PawnMoveGenerator {
      * @param fromSquare the current square index of the pawn.
      * @param toSquare the target square index to move the pawn to.
      * @param color the color of the pawn (PieceColor.WHITE or PieceColor.BLACK).
-     * @throws Exception if the move is not valid, with a message explaining why.
+     * @throws IllegalMoveException if the move is not valid, with a message explaining why.
      */
-    public void movePawn(int fromSquare, int toSquare, PieceColor color) throws Exception {
+    public void movePawn(int fromSquare, int toSquare, PieceColor color) {
         List<Integer> validMoves = generateMovesForPawn(fromSquare, color);
 
         if (validMoves.contains(toSquare)) {

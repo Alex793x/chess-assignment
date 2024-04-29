@@ -1,7 +1,5 @@
 package chess.engine.move_generation;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import chess.board.Bitboard;
 import chess.board.Board;
 import chess.board.enums.PieceColor;
@@ -14,17 +12,18 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
-class MoveGeneratorTest {
+import static org.junit.jupiter.api.Assertions.*;
+
+class KingMoveGeneratorTest {
+
     private Board board;
     private KingMoveGenerator kingMoveGenerator;
 
-    private PawnMoveGenerator pawnMoveGenerator;
 
     @BeforeEach
     void setUp() {
         board = new Board();
         kingMoveGenerator = new KingMoveGenerator(board);
-        pawnMoveGenerator = new PawnMoveGenerator(board);
         clearBoard();
     }
 
@@ -132,102 +131,6 @@ class MoveGeneratorTest {
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
     }
-
-
-
-    @Test
-    void testPawnSingleForwardMove() throws Exception {
-        // Place a white pawn at e2 (index 12)
-        board.getBitboard().placePieceOnSquare(12, PieceType.PAWN, PieceColor.WHITE);
-        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
-        System.out.println(board.getBitboard().convertBitboardToBinaryString());
-        pawnMoveGenerator.movePawn(12, 20, PieceColor.WHITE);
-        System.out.println(board.getBitboard().convertBitboardToBinaryString());
-
-        // Expect the pawn to move to e3 (index 20)
-        assertEquals(2, moves.size(), "Pawn should have 2 possible move.");
-        assertTrue(moves.contains(20), "Pawn should be able to move forward to e3.");
-        assertTrue(moves.contains(28), "Pawn should be able to move forward to e3.");
-    }
-
-    @Test
-    void testPawnInitialDoubleForwardMove() throws Exception {
-        // Place a white pawn at e2 (index 12)
-        board.getBitboard().placePieceOnSquare(12, PieceType.PAWN, PieceColor.WHITE);
-        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
-        System.out.println(board.getBitboard().convertBitboardToBinaryString());
-        pawnMoveGenerator.movePawn(12, 28, PieceColor.WHITE);
-        System.out.println(board.getBitboard().convertBitboardToBinaryString());
-
-        // Expect the pawn to also have the option to move to e4 (index 28)
-        assertTrue(moves.contains(28), "Pawn should be able to make an initial double step forward to e4.");
-        assertTrue(moves.contains(20), "Pawn should be able to make an initial double step forward to e4.");
-    }
-
-    @Test
-    void testPawnCaptureMoves() throws Exception {
-        // Place a white pawn at e4 (index 28) and a black pawn at f5 (index 37)
-        board.getBitboard().placePieceOnSquare(28, PieceType.PAWN, PieceColor.WHITE);
-        board.getBitboard().placePieceOnSquare(37, PieceType.PAWN, PieceColor.BLACK);
-
-        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(28, PieceColor.WHITE);
-
-        System.out.println(board.getBitboard().convertBitboardToBinaryString());
-        pawnMoveGenerator.movePawn(28, 37, PieceColor.WHITE);
-        System.out.println(board.getBitboard().convertBitboardToBinaryString());
-
-        // Expect the pawn to be able to move to f5 (index 37)
-        assertTrue(moves.contains(37), "Pawn should be able to capture on f5.");
-    }
-
-
-    @Test
-    void testPawnBlockedMove() {
-
-        board.getBitboard().placePieceOnSquare(12, PieceType.PAWN, PieceColor.WHITE);
-        board.getBitboard().placePieceOnSquare(20, PieceType.ROOK, PieceColor.BLACK);
-
-        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
-
-        System.out.println(board.getBitboard().convertBitboardToBinaryString());
-
-        // Attempt to make the blocked move
-        Exception exception = assertThrows(IllegalMoveException.class, () -> {
-            pawnMoveGenerator.movePawn(12, 20, PieceColor.WHITE);
-        });
-
-        System.out.println(board.getBitboard().convertBitboardToBinaryString());
-
-        // Pawn should not be able to move forward to e3 as it is blocked
-        assertFalse(moves.contains(20), "Pawn should not move forward to e3 as it is blocked.");
-
-        assertEquals("Invalid move: Pawn cannot move from 12 to 20", exception.getMessage());
-    }
-
-    @Test
-    void testPawnBlockedMoveOverEnemy() {
-
-        board.getBitboard().placePieceOnSquare(12, PieceType.PAWN, PieceColor.WHITE);
-        board.getBitboard().placePieceOnSquare(20, PieceType.ROOK, PieceColor.BLACK);
-
-        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
-
-        System.out.println(board.getBitboard().convertBitboardToBinaryString());
-
-        // Attempt to make the blocked move
-        Exception exception = assertThrows(IllegalMoveException.class, () -> {
-            pawnMoveGenerator.movePawn(12, 28, PieceColor.WHITE);
-        });
-
-        System.out.println(board.getBitboard().convertBitboardToBinaryString());
-
-        // Pawn should not be able to move forward to e3 as it is blocked
-        assertFalse(moves.contains(28), "Pawn should not move forward to e3 as it is blocked.");
-
-        assertEquals("Invalid move: Pawn cannot move from 12 to 28", exception.getMessage());
-    }
-
-
 
 
 
