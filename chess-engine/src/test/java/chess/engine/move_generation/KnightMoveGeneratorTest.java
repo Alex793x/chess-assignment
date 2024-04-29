@@ -27,7 +27,6 @@ class KnightMoveGeneratorTest {
     }
 
     private void clearBoard() {
-        // This method will clear all pieces from the board
         Bitboard bitboard = board.getBitboard();
         bitboard.setWhiteKing(0L);
         bitboard.setWhiteQueens(0L);
@@ -43,10 +42,10 @@ class KnightMoveGeneratorTest {
         bitboard.setBlackPawns(0L);
     }
 
-    // Test the knight's movement from the center of the board
+
     @Test
     void testKnightMovesFromCenter() {
-        // Place a knight at d4 (square 27)
+
         board.getBitboard().placePieceOnSquare(27, PieceType.KNIGHT, PieceColor.WHITE);
         List<Integer> moves = knightMoveGenerator.generateMovesForKnight(27, PieceColor.WHITE);
         System.out.println("Knight Attacks Bitboard for 27: " + Long.toBinaryString(PreComputationHandler.KING_ATTACKS[27]));
@@ -56,15 +55,14 @@ class KnightMoveGeneratorTest {
         knightMoveGenerator.moveKnight(27, 42, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
-        // Check that all valid "L-shaped" moves are possible
         assertEquals(8, moves.size(), "Knight on d4 should have 8 possible moves.");
         assertTrue(moves.containsAll(Arrays.asList(10, 12, 17, 21, 33, 37, 42, 44)), "Knight should move to all valid L-shape positions from d4.");
     }
 
-    // Test the knight's movement from the edge of the board
+
     @Test
     void testKnightMovesFromEdge() {
-        // Place a knight at a1 (square 0)
+
         board.getBitboard().placePieceOnSquare(0, PieceType.KNIGHT, PieceColor.WHITE);
         List<Integer> moves = knightMoveGenerator.generateMovesForKnight(0, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -75,15 +73,14 @@ class KnightMoveGeneratorTest {
         knightMoveGenerator.moveKnight(0, 10, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
-        // Knight at a1 should only be able to move to b3 and c2
         assertEquals(2, moves.size(), "Knight on a1 should have 2 possible moves.");
         assertTrue(moves.containsAll(Arrays.asList(10, 17)), "Knight should only move to b3 and c2 from a1.");
     }
 
-    // Test the knight's ability to jump over other pieces
+
     @Test
     void testKnightJumpsOverPieces() {
-        // Place a knight at e4 (square 36) and other pieces around it
+
         board.getBitboard().placePieceOnSquare(36, PieceType.KNIGHT, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(35, PieceType.PAWN, PieceColor.BLACK);
         board.getBitboard().placePieceOnSquare(37, PieceType.PAWN, PieceColor.BLACK);
@@ -99,14 +96,13 @@ class KnightMoveGeneratorTest {
         knightMoveGenerator.moveKnight(36, 30, PieceColor.WHITE);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
-        // Ensure the knight can still make its moves despite pieces being adjacent
+
         assertTrue(moves.containsAll(Arrays.asList(19, 26, 42, 51, 53, 46, 30, 21)));
     }
 
-    // Test an invalid knight move attempt
     @Test
     void moveKnightInvalidMoveTest() {
-        // Place a knight at e2 (square 12)
+
         board.getBitboard().placePieceOnSquare(12, PieceType.KNIGHT, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
@@ -119,10 +115,10 @@ class KnightMoveGeneratorTest {
         assertEquals("Invalid move: Knight cannot move from 12 to 28", exception.getMessage());
     }
 
-    // Test the knight capturing an enemy piece
+
     @Test
     void testKnightCapture() {
-        // Place a knight at d4 (square 27) and an enemy pawn at c6 (square 18)
+
         board.getBitboard().placePieceOnSquare(27, PieceType.KNIGHT, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(10, PieceType.PAWN, PieceColor.BLACK);
 
