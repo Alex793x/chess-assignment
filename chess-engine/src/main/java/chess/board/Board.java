@@ -155,6 +155,17 @@ public final class Board {
         return currentPlayer == PieceColor.WHITE;
     }
 
+    public boolean isSquareEmpty(int square, long allOccupancies) {
+        return (allOccupancies & (1L << square)) == 0;
+    }
+
+    public boolean isSquareOccupiedByEnemy(int square, long enemyOccupancies) {
+        return (enemyOccupancies & (1L << square)) != 0;
+    }
+
+    public boolean isWithinBoardBounds(int square) {
+        return square >= 0 && square < 64;
+    }
 
 
 
