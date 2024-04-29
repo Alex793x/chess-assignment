@@ -28,7 +28,7 @@ class KingMoveGeneratorTest {
     }
 
     private void clearBoard() {
-        // This method will clear all pieces from the board
+
         Bitboard bitboard = board.getBitboard();
         bitboard.setWhiteKing(0L);
         bitboard.setWhiteQueens(0L);
@@ -44,15 +44,14 @@ class KingMoveGeneratorTest {
         bitboard.setBlackPawns(0L);
     }
 
-    // Test knight's movement possibilities
+
     @Test
     void testKingMovesCenter() {
-        // Place a knight at d4 (27)
+
         board.getBitboard().placePieceOnSquare(27, PieceType.KING, PieceColor.WHITE);
         List<Integer> moves = kingMoveGenerator.generateMovesForKing(27, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
-        // Expect moves to be 18, 19, 20, 26, 28, 34, 35, 36
         assertEquals(8, moves.size(), "King on d4 should have 8 possible moves.");
         assertTrue(moves.contains(18));
         assertTrue(moves.contains(19));
