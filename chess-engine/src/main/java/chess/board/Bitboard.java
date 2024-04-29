@@ -70,6 +70,53 @@ public class Bitboard {
 
 
     /**
+     * Converts the current state of the bitboards into a Forsyth-Edwards Notation (FEN) string.
+     * The FEN string represents the placement of pieces on the chessboard, as well as additional
+     * game state information such as the active player, castling availability, en passant target,
+     * halfmove clock, and fullmove number.
+     *
+     * @return A string in FEN format representing the current game state.
+     */
+    public String convertBitboardToFEN() {
+        StringBuilder fen = new StringBuilder();
+        // Process each rank starting from 8 down to 1
+        for (int rank = 7; rank >= 0; rank--) {
+            int emptyCount = 0;  // counts empty squares in the rank
+
+            for (int file = 0; file < 8; file++) {
+                int index = rank * 8 + file;  // Finds the index based on rank and file
+                char piece = getPiece(index);  // Finds the piece for an index
+
+                if (piece == ' ') {
+                    emptyCount++;  // Increment count of empty squares
+                } else {
+                    if (emptyCount != 0) {
+                        fen.append(emptyCount);  // Append number of empty squares before the piece
+                        emptyCount = 0;  // Reset empty square count
+                    }
+                    fen.append(piece);  // Set the piece in the FEN
+                }
+            }
+
+            if (emptyCount != 0) {
+                fen.append(emptyCount);  // Append remaining empty squares at the end of the rank
+            }
+            if (rank > 0) {
+                fen.append('/');  // Add slash to separate ranks except for the last one
+            }
+        }
+
+        // TODO Here we need to add all the functionality for the rest of the FEN String.
+        // THis means that when the move by the enige has been made, we need to update the
+        // turn, move, half move, castling rights and en passant square. And then we send it
+        // to the frontend for it to load.
+        fen.append(" w KQkq - 0 1");
+
+        return fen.toString();
+    }
+
+
+    /**
      * Places a piece of the specified type and color on the given square of the chessboard.
      *
      * @param square     The index of the square where the piece is to be placed (0-63).

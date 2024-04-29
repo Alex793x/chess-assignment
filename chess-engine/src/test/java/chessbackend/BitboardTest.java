@@ -55,4 +55,17 @@ class BitboardTest {
 
     }
 
+
+
+    @Test
+    void testConvertBitboardToFEN() {
+        String fen = "rn2kb1r/pp2pp1p/3p2p1/2pP1b2/8/qP1P4/P1QBPPPP/R3KBNR w KQkq - 0 9"; // Custom FEN for this board setup
+        newBoard.getBitboard().readFEN_String(fen);
+        System.out.println("BOARD STATE READ FROM FEN");
+        System.out.println(newBoard.getBitboard().convertBitboardToBinaryString());
+
+        System.out.println("BITBOARD CONVERTED TO FEN String: " + newBoard.getBitboard().convertBitboardToFEN());
+
+    }
+
 }
