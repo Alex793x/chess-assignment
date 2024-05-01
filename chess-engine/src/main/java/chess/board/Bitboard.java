@@ -223,7 +223,7 @@ public class Bitboard {
      * @return The bitboard corresponding to the specified piece type and color.
      * @throws IllegalArgumentException if the piece type is invalid.
      */
-    private long getBitboardForPieceTypeAndColor(PieceType pieceType, PieceColor pieceColor) {
+    public long getBitboardForPieceTypeAndColor(PieceType pieceType, PieceColor pieceColor) {
         return switch (pieceType) {
             case KING -> pieceColor == PieceColor.WHITE ? whiteKing : blackKing;
             case QUEEN -> pieceColor == PieceColor.WHITE ? whiteQueens : blackQueens;

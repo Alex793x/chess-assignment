@@ -1,13 +1,15 @@
 package chess.engine.move_generation;
 
+
 import chess.board.Bitboard;
 import chess.board.Board;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
-import chess.engine.exception.IllegalMoveException;
+import chess.exception.IllegalMoveException;
 import chess.engine.pre_computations.PreComputationHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import chess.ai_player.move_generation.SlidingPieceMoveGenerator;
 
 import java.util.Arrays;
 import java.util.List;
@@ -62,7 +64,7 @@ class SlidingPieceMoveGeneratorTest {
     @Test
     void testRookBlockedByPiece() {
         board.getBitboard().placePieceOnSquare(0, PieceType.ROOK, PieceColor.WHITE);
-        board.getBitboard().placePieceOnSquare(8, PieceType.PAWN, PieceColor.WHITE); // Blocking pawn at a2
+        board.getBitboard().placePieceOnSquare(8, PieceType.PAWN, PieceColor.WHITE);
 
         List<Integer> moves = generator.generateMovesForSlidingPiece(0, PieceColor.WHITE, PieceType.ROOK);
 

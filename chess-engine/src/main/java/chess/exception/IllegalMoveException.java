@@ -1,4 +1,4 @@
-package chess.engine.exception;
+package chess.exception;
 
 public class IllegalMoveException extends RuntimeException {
     // Constructor that accepts only the error message

@@ -1,10 +1,11 @@
 package chess.engine.move_generation;
 
+import chess.ai_player.move_generation.PawnMoveGenerator;
 import chess.board.Bitboard;
 import chess.board.Board;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
-import chess.engine.exception.IllegalMoveException;
+import chess.exception.IllegalMoveException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

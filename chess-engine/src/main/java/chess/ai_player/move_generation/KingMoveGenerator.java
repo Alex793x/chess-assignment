@@ -1,9 +1,9 @@
-package chess.engine.move_generation;
+package chess.ai_player.move_generation;
 
 import chess.board.Board;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
-import chess.engine.exception.IllegalMoveException;
+import chess.exception.IllegalMoveException;
 import chess.engine.pre_computations.PreComputationHandler;
 
 import java.util.ArrayList;
@@ -75,5 +75,19 @@ public class KingMoveGenerator {
             // If the move is not valid, throw an exception detailing the issue
             throw new IllegalMoveException("Invalid move: King cannot move from " + fromSquare + " to " + toSquare);
         }
+    }
+
+    public boolean generateThreatsForKing(int position, PieceColor enemyColor) {
+        // Determine the location of the enemy king
+        int kingPosition = board.getKingPositiion(enemyColor);
+        long possibleMoves = PreComputationHandler.KING_ATTACKS[kingPosition];
+        long allOccupancies = board.getBitboard().getOccupancies(enemyColor.opposite());
+
+        // Check if the position can be attacked by the enemy king
+        if ((possibleMoves & (1L << position)) != 0) {
+            // Ensure that the position is not occupied by a piece of the same color
+            return (allOccupancies & (1L << position)) == 0;
+        }
+        return false;
     }
 }
