@@ -1,9 +1,9 @@
-package chess.engine.move_generation;
+package chess.ai_player.move_generation;
 
 import chess.board.Board;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
-import chess.engine.exception.IllegalMoveException;
+import chess.exception.IllegalMoveException;
 import chess.engine.move_validation.piece_validators.BishopValidator;
 import chess.engine.move_validation.piece_validators.QueenValidator;
 import chess.engine.move_validation.piece_validators.RookValidator;
@@ -57,16 +57,12 @@ public class SlidingPieceMoveGenerator {
     }
 
     private int[] getDirectionOffsets(PieceType pieceType) {
-        switch (pieceType) {
-            case ROOK:
-                return RookValidator.ROOK_OFFSETS; // Horizontal and vertical
-            case BISHOP:
-                return BishopValidator.BISHOP_OFFSETS; // Diagonal
-            case QUEEN:
-                return QueenValidator.QUEEN_OFFSET; // Horizontal, vertical, and diagonal
-            default:
-                throw new IllegalArgumentException("Unsupported piece type for sliding movement");
-        }
+        return switch (pieceType) {
+            case ROOK -> RookValidator.ROOK_OFFSETS; // Horizontal and vertical
+            case BISHOP -> BishopValidator.BISHOP_OFFSETS; // Diagonal
+            case QUEEN -> QueenValidator.QUEEN_OFFSET; // Horizontal, vertical, and diagonal
+            default -> throw new IllegalArgumentException("Unsupported piece type for sliding movement");
+        };
     }
 
     /**
@@ -88,5 +84,32 @@ public class SlidingPieceMoveGenerator {
         } else {
             throw new IllegalMoveException("Invalid move: " + pieceType + " cannot move from " + fromSquare + " to " + toSquare);
         }
+    }
+
+    // General method to check threat from specified piece type
+    private boolean isPositionUnderThreatByPieceType(int position, PieceColor enemyColor, PieceType pieceType) {
+        long piecesBitboard = board.getBitboard().getBitboardForPieceTypeAndColor(pieceType, enemyColor);
+        while (piecesBitboard != 0) {
+            int fromSquare = Long.numberOfTrailingZeros(piecesBitboard);
+            piecesBitboard &= piecesBitboard - 1; // Clear the lowest set bit
+            if (generateMovesForSlidingPiece(fromSquare, enemyColor, pieceType).contains(position)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+
+    public boolean generateThreatsForBishop(int position, PieceColor enemyColor) {
+        return isPositionUnderThreatByPieceType(position, enemyColor, PieceType.BISHOP);
+    }
+
+    public boolean generateThreatsForRook(int position, PieceColor enemyColor) {
+        return isPositionUnderThreatByPieceType(position, enemyColor, PieceType.ROOK);
+    }
+
+    public boolean generateThreatsForQueen(int position, PieceColor enemyColor) {
+        return isPositionUnderThreatByPieceType(position, enemyColor, PieceType.QUEEN);
     }
 }

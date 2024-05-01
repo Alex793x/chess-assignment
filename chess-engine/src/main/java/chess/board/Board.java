@@ -113,12 +113,18 @@ public final class Board {
         PieceColor pieceColor = getPieceColorAtSquare(fromSquare);
 
         // Validate Move Actions
-        if (pieceType == PieceType.PAWN && !MoveValidator.validatePawnMoves(this, fromSquare, toSquare, pieceColor)) return;
-        if (pieceType == PieceType.KNIGHT && !MoveValidator.validateKnightMoves(this, fromSquare, toSquare, pieceColor)) return;
-        if (pieceType == PieceType.BISHOP && !MoveValidator.validateBishopMoves(this, fromSquare, toSquare, pieceColor)) return;
-        if (pieceType == PieceType.ROOK && !MoveValidator.validateRookMoves(this, fromSquare, toSquare, pieceColor)) return;
-        if (pieceType == PieceType.QUEEN && !MoveValidator.validateQueenMoves(this, fromSquare, toSquare, pieceColor)) return;
-        if (pieceType == PieceType.KING && !MoveValidator.validateKingMoves(this, fromSquare, toSquare, pieceColor)) return;
+        if (pieceType == PieceType.PAWN && !MoveValidator.validatePawnMoves(this, fromSquare, toSquare, pieceColor))
+            return;
+        if (pieceType == PieceType.KNIGHT && !MoveValidator.validateKnightMoves(this, fromSquare, toSquare, pieceColor))
+            return;
+        if (pieceType == PieceType.BISHOP && !MoveValidator.validateBishopMoves(this, fromSquare, toSquare, pieceColor))
+            return;
+        if (pieceType == PieceType.ROOK && !MoveValidator.validateRookMoves(this, fromSquare, toSquare, pieceColor))
+            return;
+        if (pieceType == PieceType.QUEEN && !MoveValidator.validateQueenMoves(this, fromSquare, toSquare, pieceColor))
+            return;
+        if (pieceType == PieceType.KING && !MoveValidator.validateKingMoves(this, fromSquare, toSquare, pieceColor))
+            return;
 
         bitboard.removePieceFromSquare(fromSquare, pieceType, pieceColor);
         bitboard.placePieceOnSquare(toSquare, pieceType, pieceColor);
@@ -167,6 +173,20 @@ public final class Board {
         return square >= 0 && square < 64;
     }
 
+    public int getKingPositiion(PieceColor color) {
+        long kingBitboard = color == PieceColor.WHITE ? bitboard.getWhiteKing() : bitboard.getBlackKing();
+        return bitboardIndex(kingBitboard);
+    }
 
-
+    private int bitboardIndex(long bitboard) {
+        if (bitboard == 0) {
+            return -1; // No pieces of this type on the board
+        }
+        int index = 0;
+        while ((bitboard & 1) == 0) {
+            bitboard >>>= 1;
+            index++;
+        }
+        return index;
+    }
 }
