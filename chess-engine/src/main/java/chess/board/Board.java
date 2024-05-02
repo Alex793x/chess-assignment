@@ -131,20 +131,21 @@ public final class Board {
     }
 
     public PieceType getPieceTypeAtSquare(int square) {
-        for (PieceType pieceType : PieceType.values()) {
-            if (bitboard.isSquareOccupiedByPiece(square, pieceType, PieceColor.WHITE) ||
-                    bitboard.isSquareOccupiedByPiece(square, pieceType, PieceColor.BLACK)) {
-                return pieceType;
+        for (PieceColor color : PieceColor.values()) {
+            for (PieceType type : PieceType.values()) {
+                if (bitboard.isSquareOccupiedByPiece(square, type, color)) {
+                    return type;
+                }
             }
         }
         return null;
     }
 
     public PieceColor getPieceColorAtSquare(int square) {
-        for (PieceColor pieceColor : PieceColor.values()) {
-            for (PieceType pieceType : PieceType.values()) {
-                if (bitboard.isSquareOccupiedByPiece(square, pieceType, pieceColor)) {
-                    return pieceColor;
+        for (PieceColor color : PieceColor.values()) {
+            for (PieceType type : PieceType.values()) {
+                if (bitboard.isSquareOccupiedByPiece(square, type, color)) {
+                    return color;
                 }
             }
         }
@@ -173,10 +174,18 @@ public final class Board {
         return square >= 0 && square < 64;
     }
 
-    public int getKingPositiion(PieceColor color) {
-        long kingBitboard = color == PieceColor.WHITE ? bitboard.getWhiteKing() : bitboard.getBlackKing();
-        return bitboardIndex(kingBitboard);
+
+
+
+    public int getKingPosition(PieceColor color) {
+        long kingBitboard = (color == PieceColor.WHITE) ? bitboard.getWhiteKing() : bitboard.getBlackKing();
+        if (kingBitboard == 0) {
+            System.err.println("No king found for " + color);
+            return -1; // or handle it another way that suits your application
+        }
+        return Long.numberOfTrailingZeros(kingBitboard);
     }
+
 
     private int bitboardIndex(long bitboard) {
         if (bitboard == 0) {

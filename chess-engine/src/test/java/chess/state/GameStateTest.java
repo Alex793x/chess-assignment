@@ -52,7 +52,7 @@ class GameStateTest {
     @Test
     void testKingNotInCheck() {
         board.getBitboard().placePieceOnSquare(4, PieceType.KING, PieceColor.WHITE);
-        board.getBitboard().placePieceOnSquare(27, PieceType.QUEEN, PieceColor.BLACK); // Not aligning with the king
+        board.getBitboard().placePieceOnSquare(27, PieceType.QUEEN, PieceColor.BLACK);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
@@ -63,7 +63,7 @@ class GameStateTest {
     void testKingInCheckmate() {
         // Setting up a simple checkmate position
         board.getBitboard().placePieceOnSquare(0, PieceType.KING, PieceColor.WHITE);
-        board.getBitboard().placePieceOnSquare(1, PieceType.QUEEN, PieceColor.BLACK);
+        board.getBitboard().placePieceOnSquare(2, PieceType.QUEEN, PieceColor.BLACK);
         board.getBitboard().placePieceOnSquare(16, PieceType.QUEEN, PieceColor.BLACK);
 
         KingMoveGenerator kingMoveGenerator = new KingMoveGenerator(board);
@@ -77,7 +77,7 @@ class GameStateTest {
     @Test
     void testKingNotInCheckmate() {
         board.getBitboard().placePieceOnSquare(0, PieceType.KING, PieceColor.WHITE);
-        board.getBitboard().placePieceOnSquare(2, PieceType.QUEEN, PieceColor.BLACK); // King can escape to square 1
+        board.getBitboard().placePieceOnSquare(2, PieceType.QUEEN, PieceColor.BLACK);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
         assertFalse(gameState.isKingInCheckmate(), "White king should not be in checkmate, has an escape.");

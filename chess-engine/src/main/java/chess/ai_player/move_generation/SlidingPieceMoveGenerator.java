@@ -86,30 +86,5 @@ public class SlidingPieceMoveGenerator {
         }
     }
 
-    // General method to check threat from specified piece type
-    private boolean isPositionUnderThreatByPieceType(int position, PieceColor enemyColor, PieceType pieceType) {
-        long piecesBitboard = board.getBitboard().getBitboardForPieceTypeAndColor(pieceType, enemyColor);
-        while (piecesBitboard != 0) {
-            int fromSquare = Long.numberOfTrailingZeros(piecesBitboard);
-            piecesBitboard &= piecesBitboard - 1; // Clear the lowest set bit
-            if (generateMovesForSlidingPiece(fromSquare, enemyColor, pieceType).contains(position)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
-
-
-    public boolean generateThreatsForBishop(int position, PieceColor enemyColor) {
-        return isPositionUnderThreatByPieceType(position, enemyColor, PieceType.BISHOP);
-    }
-
-    public boolean generateThreatsForRook(int position, PieceColor enemyColor) {
-        return isPositionUnderThreatByPieceType(position, enemyColor, PieceType.ROOK);
-    }
-
-    public boolean generateThreatsForQueen(int position, PieceColor enemyColor) {
-        return isPositionUnderThreatByPieceType(position, enemyColor, PieceType.QUEEN);
-    }
 }

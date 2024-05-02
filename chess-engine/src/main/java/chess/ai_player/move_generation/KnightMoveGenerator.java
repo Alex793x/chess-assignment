@@ -62,24 +62,7 @@ public class KnightMoveGenerator {
         }
     }
 
-    /**
-     * Checks if a given position can be attacked by an enemy knight.
-     * @param position The index of the square to check for threats.
-     * @param enemyColor The color of the potentially attacking knights.
-     * @return true if the position can be attacked by a knight of the specified color, false otherwise.
-     */
-    public boolean generateThreatsForKnight(int position, PieceColor enemyColor) {
-        // Retrieve all possible knight moves from the position
-        long knightThreats = PreComputationHandler.KNIGHT_ATTACKS[position];
 
-        // Get all positions occupied by enemy knights
-        long enemyKnights = enemyColor == PieceColor.WHITE ?
-                board.getBitboard().getWhiteKnights() :
-                board.getBitboard().getBlackKnights();
-
-        // Check if any enemy knights can move to the position
-        return (knightThreats & enemyKnights) != 0;
-    }
 }
 
 
