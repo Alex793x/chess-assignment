@@ -90,39 +90,5 @@ public class PawnMoveGenerator {
         }
     }
 
-    /**
-     * Checks if a given position can be attacked by an enemy pawn.
-     * @param position The index of the square to check for threats.
-     * @param enemyColor The color of the potential attacking pawns.
-     * @return true if the position can be attacked by a pawn of the specified color, false otherwise.
-     */
-    public boolean generateThreatsForPawn(int position, PieceColor enemyColor) {
-        int rank = position / 8;
-        int file = position % 8;
-        List<Integer> potentialPositions = new ArrayList<>();
 
-        // Determine potential positions of enemy pawns based on their attack patterns
-        if (enemyColor == PieceColor.WHITE) {
-            // White pawns attack downwards (from a higher index to a lower)
-            if (rank > 1) { // Check if there's room for a pawn to have attacked from above
-                if (file > 0) potentialPositions.add(position - 9); // Capture from the left
-                if (file < 7) potentialPositions.add(position - 7); // Capture from the right
-            }
-        } else {
-            // Black pawns attack upwards (from a lower index to a higher)
-            if (rank < 6) { // Check if there's room for a pawn to have attacked from below
-                if (file > 0) potentialPositions.add(position + 7); // Capture from the right
-                if (file < 7) potentialPositions.add(position + 9); // Capture from the left
-            }
-        }
-
-        // Check if any potential position actually contains an enemy pawn
-        for (int potentialPosition : potentialPositions) {
-            if (board.isSquareEmpty(potentialPosition, board.getBitboard().getOccupancies(enemyColor))) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

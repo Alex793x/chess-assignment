@@ -10,20 +10,22 @@ import chess.board.enums.PieceType;
 
 import java.util.List;
 
-
 public class GameState {
     private Board board;
     private PieceColor currentPlayer;
+
+    private final KingMoveGenerator kingMoveGenerator;
 
     // Constructor
     public GameState(Board board) {
         this.board = board;
         this.currentPlayer = PieceColor.WHITE;
+        kingMoveGenerator = new KingMoveGenerator(board);
     }
 
     public boolean isKingInCheck() {
-        int kingPosition = board.getKingPositiion(currentPlayer);
-        return isPositionUnderAttack(kingPosition, currentPlayer.opposite());
+        int kingPosition = board.getKingPosition(currentPlayer);
+        return isKingPositionUnderAttack(kingPosition, currentPlayer.opposite());
     }
 
     public boolean isKingInCheckmate() {
@@ -31,57 +33,52 @@ public class GameState {
             return false;
         }
 
-        // Check if any move can remove the check
-        return !canKingEscape();
-    }
+        int kingPosition = board.getKingPosition(currentPlayer);
+        List<Integer> possibleMoves = kingMoveGenerator.generateMovesForKing(kingPosition, currentPlayer);
 
-
-    /**
-     * Checks if a given position on the board is under attack by any piece of the specified enemy color.
-     *
-     * @param position The index of the square to check for threats.
-     * @param enemyColor The color of the potential attacking pieces.
-     * @return true if the position is under attack, false otherwise.
-     */
-    private boolean isPositionUnderAttack(int position, PieceColor enemyColor) {
-        boolean isUnderAttack = false;
-        for (PieceType type : PieceType.values()) {
-            boolean result = canBeAttackedBy(position, type, enemyColor);
-            System.out.println("Checking attack by " + type + ": " + result);
-            if (result) {
-                isUnderAttack = true;
+        // Check if there's any valid move where the king is not under attack
+        for (Integer move : possibleMoves) {
+            if (!isKingPositionUnderAttack(move, currentPlayer.opposite())) {
+                return false;
             }
         }
-        return isUnderAttack;
+        return true; // No valid moves where the king is not under attack
     }
 
-    private boolean canBeAttackedBy(int position, PieceType pieceType, PieceColor enemyColor) {
-        // Create a move generator based on the piece type
-        return switch (pieceType) {
-            case PAWN -> new PawnMoveGenerator(board).generateThreatsForPawn(position, enemyColor);
-            case KNIGHT -> new KnightMoveGenerator(board).generateThreatsForKnight(position, enemyColor);
-            case BISHOP -> new SlidingPieceMoveGenerator(board).generateThreatsForBishop(position, enemyColor);
-            case ROOK -> new SlidingPieceMoveGenerator(board).generateThreatsForRook(position, enemyColor);
-            case QUEEN -> new SlidingPieceMoveGenerator(board).generateThreatsForQueen(position, enemyColor);
-            case KING -> new KingMoveGenerator(board).generateThreatsForKing(position, enemyColor);
-        };
+    private boolean isKingPositionUnderAttack(int position, PieceColor enemyColor) {
+        long threatBitboard = 0L;
+
+        // Include all enemy piece moves that could potentially attack the given position
+        threatBitboard |= getThreatBitboard(PieceType.PAWN, enemyColor);
+        threatBitboard |= getThreatBitboard(PieceType.KNIGHT, enemyColor);
+        threatBitboard |= getThreatBitboard(PieceType.BISHOP, enemyColor);
+        threatBitboard |= getThreatBitboard(PieceType.ROOK, enemyColor);
+        threatBitboard |= getThreatBitboard(PieceType.QUEEN, enemyColor);
+
+        // Check if the position is under threat
+        return (threatBitboard & (1L << position)) != 0;
     }
 
-    private boolean canKingEscape() {
-        int kingPosition = board.getKingPositiion(currentPlayer);
-        List<Integer> possibleMoves = new KingMoveGenerator(board).generateMovesForKing(kingPosition, currentPlayer);
+    private long getThreatBitboard(PieceType pieceType, PieceColor enemyColor) {
+        long pieces = board.getBitboard().getBitboardForPieceTypeAndColor(pieceType, enemyColor);
+        long movesBitboard = 0L;
 
-        System.out.println("Evaluating escape moves for king at " + kingPosition + ": " + possibleMoves);
+        while (pieces != 0) {
+            int fromSquare = Long.numberOfTrailingZeros(pieces);
+            pieces &= ~(1L << fromSquare); // Clear the bit to move to the next piece
 
-        for (int newPosition : possibleMoves) {
-            if (!isPositionUnderAttack(newPosition, currentPlayer.opposite())) {
-                System.out.println("King can escape to: " + newPosition);
-                return true;
-            } else {
-                System.out.println("Position " + newPosition + " is under attack.");
+            List<Integer> moves = switch (pieceType) {
+                case PAWN -> new PawnMoveGenerator(board).generateMovesForPawn(fromSquare, enemyColor);
+                case KNIGHT -> new KnightMoveGenerator(board).generateMovesForKnight(fromSquare, enemyColor);
+                default -> // For BISHOP, ROOK, QUEEN
+                        new SlidingPieceMoveGenerator(board).generateMovesForSlidingPiece(fromSquare, enemyColor, pieceType);
+            };
+
+            for (int move : moves) {
+                movesBitboard |= 1L << move;
             }
         }
-        return false;
-    }
 
+        return movesBitboard;
+    }
 }
