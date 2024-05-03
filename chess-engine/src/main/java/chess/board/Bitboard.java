@@ -69,6 +69,52 @@ public class Bitboard {
     }
 
 
+    /**
+     * Converts the current state of the bitboards into a Forsyth-Edwards Notation (FEN) string.
+     * The FEN string represents the placement of pieces on the chessboard, as well as additional
+     * game state information such as the active player, castling availability, en passant target,
+     * halfmove clock, and fullmove number.
+     *
+     * @return A string in FEN format representing the current game state.
+     */
+    public String convertBitboardToFEN() {
+        StringBuilder fen = new StringBuilder();
+        // Process each rank starting from 8 down to 1
+        for (int rank = 7; rank >= 0; rank--) {
+            int emptyCount = 0;  // counts empty squares in the rank
+
+            for (int file = 0; file < 8; file++) {
+                int index = rank * 8 + file;  // Finds the index based on rank and file
+                char piece = getPiece(index);  // Finds the piece for an index
+
+                if (piece == ' ') {
+                    emptyCount++;  // Increment count of empty squares
+                } else {
+                    if (emptyCount != 0) {
+                        fen.append(emptyCount);  // Append number of empty squares before the piece
+                        emptyCount = 0;  // Reset empty square count
+                    }
+                    fen.append(piece);  // Set the piece in the FEN
+                }
+            }
+
+            if (emptyCount != 0) {
+                fen.append(emptyCount);  // Append remaining empty squares at the end of the rank
+            }
+            if (rank > 0) {
+                fen.append('/');  // Add slash to separate ranks except for the last one
+            }
+        }
+
+        // TODO Here we need to add all the functionality for the rest of the FEN String.
+        // THis means that when the move by the enige has been made, we need to update the
+        // turn, move, half move, castling rights and en passant square. And then we send it
+        // to the frontend for it to load.
+        fen.append(" w KQkq - 0 1");
+
+        return fen.toString();
+    }
+
 
     /**
      * Places a piece of the specified type and color on the given square of the chessboard.
@@ -78,7 +124,7 @@ public class Bitboard {
      * @param pieceColor The color of the piece to be placed (WHITE or BLACK).
      */
     public void placePieceOnSquare(int square, PieceType pieceType, PieceColor pieceColor) {
-        long mask = SQUARE_MASKS[square];
+        long mask = SQUARE_MASKS[square];  // For square 0, mask will be 0b1
         long bitboard = getBitboardForPieceTypeAndColor(pieceType, pieceColor);
         bitboard |= mask;
         setBitboardForPieceTypeAndColor(pieceType, pieceColor, bitboard);
@@ -138,8 +184,8 @@ public class Bitboard {
         for (int rank = 7; rank >= 0; rank--) {
             sb.append(rank + 1).append(" |");
             for (int file = 0; file < 8; file++) {
-                int pieceIndex = rank * 8 + file;
-                char piece = getPiece(pieceIndex);
+                int i = rank * 8 + file;
+                char piece = getPiece(i);
                 sb.append("  ").append(piece).append(" |");
             }
             sb.append("  ").append(rank + 1).append("th rank\n");
@@ -150,22 +196,23 @@ public class Bitboard {
         return sb.toString();
     }
 
-    private char getPiece(int pieceIndex) {
+    private char getPiece(int i) {
         char piece = ' ';
-        if ((whiteKing & SQUARE_MASKS[pieceIndex]) != 0) piece = 'K';
-        else if ((whiteQueens & SQUARE_MASKS[pieceIndex]) != 0) piece = 'Q';
-        else if ((whiteRooks & SQUARE_MASKS[pieceIndex]) != 0) piece = 'R';
-        else if ((whiteBishops & SQUARE_MASKS[pieceIndex]) != 0) piece = 'B';
-        else if ((whiteKnights & SQUARE_MASKS[pieceIndex]) != 0) piece = 'N';
-        else if ((whitePawns & SQUARE_MASKS[pieceIndex]) != 0) piece = 'P';
-        else if ((blackKing & SQUARE_MASKS[pieceIndex]) != 0) piece = 'k';
-        else if ((blackQueens & SQUARE_MASKS[pieceIndex]) != 0) piece = 'q';
-        else if ((blackRooks & SQUARE_MASKS[pieceIndex]) != 0) piece = 'r';
-        else if ((blackBishops & SQUARE_MASKS[pieceIndex]) != 0) piece = 'b';
-        else if ((blackKnights & SQUARE_MASKS[pieceIndex]) != 0) piece = 'n';
-        else if ((blackPawns & SQUARE_MASKS[pieceIndex]) != 0) piece = 'p';
+        if ((whiteKing & SQUARE_MASKS[i]) != 0) piece = 'K';
+        else if ((whiteQueens & SQUARE_MASKS[i]) != 0) piece = 'Q';
+        else if ((whiteRooks & SQUARE_MASKS[i]) != 0) piece = 'R';
+        else if ((whiteBishops & SQUARE_MASKS[i]) != 0) piece = 'B';
+        else if ((whiteKnights & SQUARE_MASKS[i]) != 0) piece = 'N';
+        else if ((whitePawns & SQUARE_MASKS[i]) != 0) piece = 'P';
+        else if ((blackKing & SQUARE_MASKS[i]) != 0) piece = 'k';
+        else if ((blackQueens & SQUARE_MASKS[i]) != 0) piece = 'q';
+        else if ((blackRooks & SQUARE_MASKS[i]) != 0) piece = 'r';
+        else if ((blackBishops & SQUARE_MASKS[i]) != 0) piece = 'b';
+        else if ((blackKnights & SQUARE_MASKS[i]) != 0) piece = 'n';
+        else if ((blackPawns & SQUARE_MASKS[i]) != 0) piece = 'p';
         return piece;
     }
+
 
 
     /**
@@ -176,7 +223,7 @@ public class Bitboard {
      * @return The bitboard corresponding to the specified piece type and color.
      * @throws IllegalArgumentException if the piece type is invalid.
      */
-    private long getBitboardForPieceTypeAndColor(PieceType pieceType, PieceColor pieceColor) {
+    public long getBitboardForPieceTypeAndColor(PieceType pieceType, PieceColor pieceColor) {
         return switch (pieceType) {
             case KING -> pieceColor == PieceColor.WHITE ? whiteKing : blackKing;
             case QUEEN -> pieceColor == PieceColor.WHITE ? whiteQueens : blackQueens;
@@ -207,4 +254,13 @@ public class Bitboard {
             default: throw new IllegalArgumentException("Unknown piece type: " + pieceType);
         }
     }
+
+    public long getOccupancies(PieceColor color) {
+        return switch (color) {
+            case WHITE -> whiteKing | whiteQueens | whiteRooks | whiteBishops | whiteKnights | whitePawns;
+            case BLACK -> blackKing | blackQueens | blackRooks | blackBishops | blackKnights | blackPawns;
+        };
+    }
+
+
 }
