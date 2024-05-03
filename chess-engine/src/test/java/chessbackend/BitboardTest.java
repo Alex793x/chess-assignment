@@ -3,8 +3,11 @@ package chessbackend;
 import chess.board.Board;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
+import chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating.RookSquareBoardRating;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static chess.engine.evaluation.Rating.*;
 
 class BitboardTest {
     Board newBoard = new Board();
@@ -37,22 +40,31 @@ class BitboardTest {
                 """);
         System.out.println("Initial Board!");
         System.out.println(newBoard.getBitboard().convertBitboardToBinaryString());
+        System.out.println("Initial Board Rating is: " + rating(newBoard));
     }
+
+
     @Test
     void testReadFENString() {
-        String fen = "rn2kb1r/pp2pp1p/3p2p1/2pP1b2/8/qP1P4/P1QBPPPP/R3KBNR w KQkq - 0 9"; // Custom FEN for this board setup
+        String fen = "r1bqk1nr/ppp2ppp/2n5/4b3/8/8/PPP1PPPP/RNB1KBNR w KQkq - 0 6"; // Custom FEN for this board setup
         newBoard.getBitboard().readFEN_String(fen);
 
-        //TODO Mikkel Test it! IT WOOOORKS!!! Moving pieces are aligned now!!!
-        newBoard.getBitboard().removePieceFromSquare(0, PieceType.ROOK, PieceColor.WHITE);
-        newBoard.getBitboard().placePieceOnSquare(3, PieceType.ROOK, PieceColor.WHITE);
+        System.out.println("whiteboard rating is: " + whiteScoreBoardPosition(newBoard));
+        System.out.println("blackboard rating is: " + blackScoreBoardPosition(newBoard));
+        System.out.println("total score board rating is: " + rating(newBoard));
 
-        // TODO Mikkel Black pieces also works moving on up towards white!
-        newBoard.getBitboard().removePieceFromSquare(34, PieceType.PAWN, PieceColor.BLACK);
-        newBoard.getBitboard().placePieceOnSquare(26, PieceType.PAWN, PieceColor.BLACK);
+
+        //TODO Mikkel Test it! IT WOOOORKS!!! Moving pieces are aligned now!!!
+        newBoard.getBitboard().removePieceFromSquare(2, PieceType.BISHOP, PieceColor.WHITE);
+        newBoard.getBitboard().placePieceOnSquare(11, PieceType.BISHOP, PieceColor.WHITE);
+
         System.out.println("Updated Bitboards: ");
         System.out.println(newBoard.getBitboard().convertBitboardToBinaryString());
+    }
 
+    @Test
+    void fixedRatingValueForFilesShouldMatchBoardRating() {
+        System.out.println(RookSquareBoardRating.BLACK_ROOK_MID_GAME_SQUARE_RATING[0]);
     }
 
 }

@@ -1,7 +1,7 @@
 package chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating;
 
 public final class QueenSquareBoardRating {
-
+//FIXME The boards are flipped wrongly .... Needs to be flipped, look at source for more info
     /**
      * Source: <a href="https://www.talkchess.com/forum3/viewtopic.php?f=2&t=68311&start=19">talkchess</a>
      * Queen midgame

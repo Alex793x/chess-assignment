@@ -96,9 +96,8 @@ public final class Rating {
         return 0;
     }
 
-    public static int rateGeneralBoardPosition(Board board) {
+    public static int whiteScoreBoardPosition(Board board) {
         int whiteScore = 0;
-        int blackScore = 0;
         // White pieces score
         whiteScore += PieceSquareEvaluation.evaluatePiecePosition(board, PawnSquareBoardRating.WHITE_PAWN_MID_GAME_SQUARE_RATING, PieceType.PAWN);
         whiteScore += PieceSquareEvaluation.evaluatePiecePosition(board, KnightSquareBoardRating.WHITE_KNIGHT_MID_GAME_SQUARE_RATING, PieceType.KNIGHT);
@@ -107,15 +106,24 @@ public final class Rating {
         whiteScore += PieceSquareEvaluation.evaluatePiecePosition(board, QueenSquareBoardRating.WHITE_QUEEN_MID_GAME_SQUARE_RATING, PieceType.QUEEN);
         whiteScore += PieceSquareEvaluation.evaluatePiecePosition(board, KingSquareBoardRating.WHITE_KING_MID_GAME_SQUARE_RATING, PieceType.KING);
 
-        // Black pieces score
-        whiteScore += PieceSquareEvaluation.evaluatePiecePosition(board, PawnSquareBoardRating.BLACK_PAWN_MID_GAME_SQUARE_RATING, PieceType.PAWN);
-        whiteScore += PieceSquareEvaluation.evaluatePiecePosition(board, KnightSquareBoardRating.BLACK_KNIGHT_MID_GAME_SQUARE_RATING, PieceType.KNIGHT);
-        whiteScore += PieceSquareEvaluation.evaluatePiecePosition(board, BishopSquareBoardRating.BLACK_BISHOP_MID_GAME_SQUARE_RATING, PieceType.BISHOP);
-        whiteScore += PieceSquareEvaluation.evaluatePiecePosition(board, RookSquareBoardRating.BLACK_ROOK_MID_GAME_SQUARE_RATING, PieceType.ROOK);
-        whiteScore += PieceSquareEvaluation.evaluatePiecePosition(board, QueenSquareBoardRating.BLACK_QUEEN_MID_GAME_SQUARE_RATING, PieceType.QUEEN);
-        whiteScore += PieceSquareEvaluation.evaluatePiecePosition(board, KingSquareBoardRating.BLACK_KING_MID_GAME_SQUARE_RATING, PieceType.KING);
+        return whiteScore;
+    }
 
-        return whiteScore + blackScore;
+    public static int blackScoreBoardPosition(Board board) {
+        int blackScore = 0;
+        // White pieces score
+        blackScore += PieceSquareEvaluation.evaluatePiecePosition(board, PawnSquareBoardRating.BLACK_PAWN_MID_GAME_SQUARE_RATING, PieceType.PAWN);
+        blackScore += PieceSquareEvaluation.evaluatePiecePosition(board, KnightSquareBoardRating.BLACK_KNIGHT_MID_GAME_SQUARE_RATING, PieceType.KNIGHT);
+        blackScore += PieceSquareEvaluation.evaluatePiecePosition(board, BishopSquareBoardRating.BLACK_BISHOP_MID_GAME_SQUARE_RATING, PieceType.BISHOP);
+        blackScore += PieceSquareEvaluation.evaluatePiecePosition(board, RookSquareBoardRating.BLACK_ROOK_MID_GAME_SQUARE_RATING, PieceType.ROOK);
+        blackScore += PieceSquareEvaluation.evaluatePiecePosition(board, QueenSquareBoardRating.BLACK_QUEEN_MID_GAME_SQUARE_RATING, PieceType.QUEEN);
+        blackScore += PieceSquareEvaluation.evaluatePiecePosition(board, KingSquareBoardRating.BLACK_KING_MID_GAME_SQUARE_RATING, PieceType.KING);
+
+        return blackScore;
+    }
+
+    public static int rateGeneralBoardPosition(Board board) {
+        return whiteScoreBoardPosition(board) + blackScoreBoardPosition(board);
     }
 
 

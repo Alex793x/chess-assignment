@@ -70,10 +70,6 @@ public class Bitboard {
 
 
 
-
-
-
-
     /**
      * Places a piece of the specified type and color on the given square of the chessboard.
      *
@@ -82,7 +78,7 @@ public class Bitboard {
      * @param pieceColor The color of the piece to be placed (WHITE or BLACK).
      */
     public void placePieceOnSquare(int square, PieceType pieceType, PieceColor pieceColor) {
-        long mask = SQUARE_MASKS[square];  // For square 0, mask will be 0b1
+        long mask = SQUARE_MASKS[square];
         long bitboard = getBitboardForPieceTypeAndColor(pieceType, pieceColor);
         bitboard |= mask;
         setBitboardForPieceTypeAndColor(pieceType, pieceColor, bitboard);
@@ -142,8 +138,8 @@ public class Bitboard {
         for (int rank = 7; rank >= 0; rank--) {
             sb.append(rank + 1).append(" |");
             for (int file = 0; file < 8; file++) {
-                int i = rank * 8 + file;
-                char piece = getPiece(i);
+                int pieceIndex = rank * 8 + file;
+                char piece = getPiece(pieceIndex);
                 sb.append("  ").append(piece).append(" |");
             }
             sb.append("  ").append(rank + 1).append("th rank\n");
@@ -154,20 +150,20 @@ public class Bitboard {
         return sb.toString();
     }
 
-    private char getPiece(int i) {
+    private char getPiece(int pieceIndex) {
         char piece = ' ';
-        if ((whiteKing & SQUARE_MASKS[i]) != 0) piece = 'K';
-        else if ((whiteQueens & SQUARE_MASKS[i]) != 0) piece = 'Q';
-        else if ((whiteRooks & SQUARE_MASKS[i]) != 0) piece = 'R';
-        else if ((whiteBishops & SQUARE_MASKS[i]) != 0) piece = 'B';
-        else if ((whiteKnights & SQUARE_MASKS[i]) != 0) piece = 'N';
-        else if ((whitePawns & SQUARE_MASKS[i]) != 0) piece = 'P';
-        else if ((blackKing & SQUARE_MASKS[i]) != 0) piece = 'k';
-        else if ((blackQueens & SQUARE_MASKS[i]) != 0) piece = 'q';
-        else if ((blackRooks & SQUARE_MASKS[i]) != 0) piece = 'r';
-        else if ((blackBishops & SQUARE_MASKS[i]) != 0) piece = 'b';
-        else if ((blackKnights & SQUARE_MASKS[i]) != 0) piece = 'n';
-        else if ((blackPawns & SQUARE_MASKS[i]) != 0) piece = 'p';
+        if ((whiteKing & SQUARE_MASKS[pieceIndex]) != 0) piece = 'K';
+        else if ((whiteQueens & SQUARE_MASKS[pieceIndex]) != 0) piece = 'Q';
+        else if ((whiteRooks & SQUARE_MASKS[pieceIndex]) != 0) piece = 'R';
+        else if ((whiteBishops & SQUARE_MASKS[pieceIndex]) != 0) piece = 'B';
+        else if ((whiteKnights & SQUARE_MASKS[pieceIndex]) != 0) piece = 'N';
+        else if ((whitePawns & SQUARE_MASKS[pieceIndex]) != 0) piece = 'P';
+        else if ((blackKing & SQUARE_MASKS[pieceIndex]) != 0) piece = 'k';
+        else if ((blackQueens & SQUARE_MASKS[pieceIndex]) != 0) piece = 'q';
+        else if ((blackRooks & SQUARE_MASKS[pieceIndex]) != 0) piece = 'r';
+        else if ((blackBishops & SQUARE_MASKS[pieceIndex]) != 0) piece = 'b';
+        else if ((blackKnights & SQUARE_MASKS[pieceIndex]) != 0) piece = 'n';
+        else if ((blackPawns & SQUARE_MASKS[pieceIndex]) != 0) piece = 'p';
         return piece;
     }
 
