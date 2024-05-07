@@ -29,32 +29,54 @@ public class SlidingPieceMoveGenerator {
      */
     public List<Integer> generateMovesForSlidingPiece(int square, PieceColor color, PieceType pieceType) {
         List<Integer> moves = new ArrayList<>();
-        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
+        long ownOccupancies = board.getBitboard().getOccupancies(color);
+        long opponentOccupancies = board.getBitboard().getOccupancies(color.opposite());
         int[] directionOffsets = getDirectionOffsets(pieceType);
+
+        int startRow = square / 8;
+        int startCol = square % 8;
 
         for (int offset : directionOffsets) {
             int toSquare = square + offset;
+
             while (board.isWithinBoardBounds(toSquare)) {
                 int currentRow = toSquare / 8;
                 int currentCol = toSquare % 8;
 
-                // Prevent wrap-around movement
-                if (Math.abs(offset) == 1 && currentRow != square / 8) break; // Horizontal moves
-                if (Math.abs(offset) == 8 && currentCol != square % 8) break; // Vertical moves
-                if ((Math.abs(offset) == 7 || Math.abs(offset) == 9) && Math.abs(currentRow - square / 8) != Math.abs(currentCol - square % 8)) break; // Diagonal moves
-
-                if ((allOccupancies & (1L << toSquare)) != 0) {
-                    if ((board.getBitboard().getOccupancies(color.opposite()) & (1L << toSquare)) != 0) {
-                        moves.add(toSquare); // Capture possible
-                    }
-                    break; // Blocked by any piece
+                // Prevent horizontal and vertical wrap-around for rooks and queens
+                if ((Math.abs(offset) == 1 && currentRow != startRow) || (Math.abs(offset) == 8 && currentCol != startCol)) {
+                    break;
                 }
-                moves.add(toSquare); // Add as valid move
+
+                // Prevent diagonal wrap-around for bishops and queens
+                if (Math.abs(offset) == 7 || Math.abs(offset) == 9) {
+                    if (Math.abs(currentRow - startRow) != Math.abs(currentCol - startCol)) {
+                        break;
+                    }
+                }
+
+                long toSquareBitboard = 1L << toSquare;
+
+                if ((ownOccupancies & toSquareBitboard) != 0) {
+                    break; // Blocked by own piece
+                }
+
+                moves.add(toSquare); // Add as a valid move
+
+                if ((opponentOccupancies & toSquareBitboard) != 0) {
+                    break; // Capture possible, but cannot move further
+                }
+
                 toSquare += offset; // Move to the next square in the direction
             }
         }
         return moves;
     }
+
+
+
+
+
 
     private int[] getDirectionOffsets(PieceType pieceType) {
         return switch (pieceType) {

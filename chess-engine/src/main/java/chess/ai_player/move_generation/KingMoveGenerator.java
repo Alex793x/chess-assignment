@@ -36,14 +36,14 @@ public class KingMoveGenerator {
         System.out.println("King Attacks Bitboard for " + square + ": " + Long.toBinaryString(possibleMoves));
         System.out.println("Occupancies for " + color + ": " + Long.toBinaryString(occupancies));
 
-        for (int toSquare = 0; toSquare < 64; toSquare++) {
-            // Check if the move is within the precomputed moves
-            if ((possibleMoves & (1L << toSquare)) != 0) {
-                // Ensure the target square is not occupied by the same color piece
-                if ((occupancies & (1L << toSquare)) == 0) {
-                    moves.add(toSquare);
-                }
-            }
+        // Use bitwise AND to get the available moves considering the same color occupancies
+        long availableMoves = possibleMoves & ~occupancies;
+
+        // Iterate through the available moves using bitwise operations
+        while (availableMoves != 0) {
+            int toSquare = Long.numberOfTrailingZeros(availableMoves);
+            moves.add(toSquare);
+            availableMoves &= availableMoves - 1; // Clear the least significant set bit
         }
 
         // A printout of all the available moves

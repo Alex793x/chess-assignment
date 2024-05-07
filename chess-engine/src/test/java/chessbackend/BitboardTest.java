@@ -3,11 +3,13 @@ package chessbackend;
 import chess.board.Board;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
-import chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating.RookSquareBoardRating;
+import chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating_pst.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static chess.engine.evaluation.Rating.*;
+import static chess.engine.evaluation.GameStateEvaluation.*;
+import static chess.engine.evaluation.piece_attack_evaluation.CaptureEvaluation.staticExchangeEvaluation;
+import static chess.engine.evaluation.piece_board_evaluation.PieceSquareEvaluation.evaluatePiecePosition;
 
 class BitboardTest {
     Board newBoard = new Board();
@@ -40,7 +42,7 @@ class BitboardTest {
                 """);
         System.out.println("Initial Board!");
         System.out.println(newBoard.getBitboard().convertBitboardToBinaryString());
-        System.out.println("Initial Board Rating is: " + rating(newBoard));
+
     }
 
 
@@ -51,32 +53,37 @@ class BitboardTest {
 
         System.out.println("whiteboard rating is: " + whiteScoreBoardPosition(newBoard));
         System.out.println("blackboard rating is: " + blackScoreBoardPosition(newBoard));
-        System.out.println("total score board rating is: " + rating(newBoard));
+        System.out.println("total score board rating is: " + FullGameStateEvaluation(newBoard));
 
 
-        //TODO Mikkel Test it! IT WOOOORKS!!! Moving pieces are aligned now!!!
         newBoard.getBitboard().removePieceFromSquare(2, PieceType.BISHOP, PieceColor.WHITE);
         newBoard.getBitboard().placePieceOnSquare(11, PieceType.BISHOP, PieceColor.WHITE);
 
         System.out.println("Updated Bitboards: ");
         System.out.println(newBoard.getBitboard().convertBitboardToBinaryString());
+        FullGameStateEvaluation(newBoard);
     }
 
     @Test
     void fixedRatingValueForFilesShouldMatchBoardRating() {
-        System.out.println(RookSquareBoardRating.BLACK_ROOK_MID_GAME_SQUARE_RATING[0]);
+        //System.out.println(evaluatePiecePosition(newBoard, RookSquareBoardRating.WHITE_ROOK_MID_GAME_SQUARE_RATING, PieceType.ROOK, PieceColor.WHITE));
     }
 
 
 
     @Test
     void testConvertBitboardToFEN() {
-        String fen = "rn2kb1r/pp2pp1p/3p2p1/2pP1b2/8/qP1P4/P1QBPPPP/R3KBNR w KQkq - 0 9"; // Custom FEN for this board setup
+        String fen = "2r2bkr/5ppp/b6q/5B2/8/3Q4/PPP5/1KR2R2"; // Custom FEN for this board setup
         newBoard.getBitboard().readFEN_String(fen);
         System.out.println("BOARD STATE READ FROM FEN");
         System.out.println(newBoard.getBitboard().convertBitboardToBinaryString());
 
         System.out.println("BITBOARD CONVERTED TO FEN String: " + newBoard.getBitboard().convertBitboardToFEN());
+        FullGameStateEvaluation(newBoard);
+    }
+
+    @Test
+    void testAlignMaterialPosition() {
 
     }
 

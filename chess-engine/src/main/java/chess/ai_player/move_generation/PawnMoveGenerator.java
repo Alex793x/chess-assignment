@@ -12,10 +12,12 @@ public class PawnMoveGenerator {
 
     private final Board board;
 
+    public static final long WHITE_START_RANK_MASK_FOR_DOUBLE_FORWARD_MOVE = 0x000000000000FF00L;
+    public static final long BLACK_START_RANK_MASK_FOR_DOUBLE_FORWARD_MOVE = 0x00FF000000000000L;
+
     public PawnMoveGenerator(Board board) {
         this.board = board;
     }
-
 
     /**
      * Generates all valid moves for a pawn from a specified square.
@@ -31,31 +33,32 @@ public class PawnMoveGenerator {
         List<Integer> moves = new ArrayList<>();
         long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
         long enemyOccupancies = board.getBitboard().getOccupancies(color == PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE);
+        long pawnBitboard = 1L << square;
 
-        int direction = color == PieceColor.WHITE ? 1 : -1;
-        int oneStepForward = square + 8 * direction;
-        int twoStepsForward = square + 16 * direction;
-        int leftCapture = square + 7 * direction;
-        int rightCapture = square + 9 * direction;
+        int direction = color == PieceColor.WHITE ? 8 : -8;
+        long singleMoveTarget = color == PieceColor.WHITE ? pawnBitboard << 8 : pawnBitboard >>> 8;
+        long doubleMoveTarget = color == PieceColor.WHITE ? pawnBitboard << 16 : pawnBitboard >>> 16;
+        long startRankMask = color == PieceColor.WHITE ? WHITE_START_RANK_MASK_FOR_DOUBLE_FORWARD_MOVE : BLACK_START_RANK_MASK_FOR_DOUBLE_FORWARD_MOVE;
 
         // Single step forward move
-        if (board.isSquareEmpty(oneStepForward, allOccupancies)) {
-            moves.add(oneStepForward);
+        if ((singleMoveTarget & allOccupancies) == 0) {
+            moves.add(square + direction);
+        }
 
-            // Initial double step forward move
-            if (((color == PieceColor.WHITE && (square / 8) == 1) ||
-                    (color == PieceColor.BLACK && (square / 8) == 6)) &&
-                    board.isSquareEmpty(twoStepsForward, allOccupancies)) {
-                moves.add(twoStepsForward);
-            }
+        // Double step forward move
+        if ((pawnBitboard & startRankMask) != 0 && (singleMoveTarget & allOccupancies) == 0 && (doubleMoveTarget & allOccupancies) == 0) {
+            moves.add(square + 2 * direction);
         }
 
         // Capture moves to the left and right
-        if (board.isWithinBoardBounds(leftCapture) && board.isSquareOccupiedByEnemy(leftCapture, enemyOccupancies)) {
-            moves.add(leftCapture);
+        long leftCaptureTarget = color == PieceColor.WHITE ? pawnBitboard << 7 : pawnBitboard >>> 9;
+        long rightCaptureTarget = color == PieceColor.WHITE ? pawnBitboard << 9 : pawnBitboard >>> 7;
+
+        if ((leftCaptureTarget & enemyOccupancies) != 0) {
+            moves.add(square + direction - 1);
         }
-        if (board.isWithinBoardBounds(rightCapture) && board.isSquareOccupiedByEnemy(rightCapture, enemyOccupancies)) {
-            moves.add(rightCapture);
+        if ((rightCaptureTarget & enemyOccupancies) != 0) {
+            moves.add(square + direction + 1);
         }
 
         return moves;

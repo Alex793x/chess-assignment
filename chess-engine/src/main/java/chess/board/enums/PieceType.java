@@ -17,15 +17,15 @@ public enum PieceType {
     private final int endGameValue;
 
     public static PieceType fromFENChar(char c) {
-        switch (Character.toUpperCase(c)) {
-            case 'K': return KING;
-            case 'Q': return QUEEN;
-            case 'R': return ROOK;
-            case 'B': return BISHOP;
-            case 'N': return KNIGHT;
-            case 'P': return PAWN;
-            default: throw new IllegalArgumentException("Invalid piece character: " + c);
-        }
+        return switch (Character.toUpperCase(c)) {
+            case 'K' -> KING;
+            case 'Q' -> QUEEN;
+            case 'R' -> ROOK;
+            case 'B' -> BISHOP;
+            case 'N' -> KNIGHT;
+            case 'P' -> PAWN;
+            default -> throw new IllegalArgumentException("Invalid piece character: " + c);
+        };
     }
 
 }

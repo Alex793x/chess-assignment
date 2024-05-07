@@ -1,4 +1,4 @@
-package chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating;
+package chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating_pst;
 
 public final class KingSquareBoardRating {
 
@@ -6,7 +6,7 @@ public final class KingSquareBoardRating {
      *  Source: <a href="https://www.talkchess.com/forum3/viewtopic.php?f=2&t=68311&start=19">talkchess</a>
      *  King midgame
      */
-    public static final int[] WHITE_KING_MID_GAME_SQUARE_RATING = {
+    public static final int[] BLACK_KING_MID_GAME_SQUARE_RATING = {
             -15,  36,  12, -54,   8, -28,  24,  14,
               1,   7,  -8, -64, -43, -16,   9,   8,
             -14, -14, -22, -46, -44, -30, -15, -27,
@@ -17,7 +17,7 @@ public final class KingSquareBoardRating {
             -65,  23,  16, -15, -56, -34,   2,  13,
     };
 
-    public static final int[] BLACK_KING_MID_GAME_SQUARE_RATING = {
+    public static final int[] WHITE_KING_MID_GAME_SQUARE_RATING = {
             -65,  23,  16, -15, -56, -34,   2,  13,
              29,  -1, -20,  -7,  -8,  -4, -38, -29,
              -9,  24,   2, -16, -20,   6,  22, -22,
@@ -34,7 +34,7 @@ public final class KingSquareBoardRating {
      *  King endgame
      */
 
-    public static final int[] WHITE_KING_END_GAME_SQUARE_RATING = {
+    public static final int[] BLACK_KING_END_GAME_SQUARE_RATING = {
             -53, -34, -21, -11, -28, -14, -24, -43,
             -27, -11,   4,  13,  14,   4,  -5, -17,
             -19,  -3,  11,  21,  23,  16,   7,  -9,
@@ -45,7 +45,7 @@ public final class KingSquareBoardRating {
             -74, -35, -18, -18, -11,  15,   4, -17,
     };
 
-    public static final int[] BLACK_KING_END_GAME_SQUARE_RATING = {
+    public static final int[] WHITE_KING_END_GAME_SQUARE_RATING = {
             -74, -35, -18, -18, -11,  15,   4, -17,
             -12,  17,  14,  17,  17,  38,  23,  11,
              10,  17,  23,  15,  20,  45,  44,  13,

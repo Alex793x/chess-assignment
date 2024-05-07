@@ -30,13 +30,20 @@ public class KnightMoveGenerator {
         List<Integer> moves = new ArrayList<>();
         long possibleMoves = PreComputationHandler.KNIGHT_ATTACKS[square];
         long ownPieces = board.getBitboard().getOccupancies(color);
-        for (int i = 0; i < 64; i++) {
-            if ((possibleMoves & (1L << i)) != 0 && (ownPieces & (1L << i)) == 0) {
-                moves.add(i);
-            }
+
+        // Use bitwise AND to get the available moves considering the same color occupancies
+        long availableMoves = possibleMoves & ~ownPieces;
+
+        // Iterate through the available moves using bitwise operations
+        while (availableMoves != 0) {
+            int toSquare = Long.numberOfTrailingZeros(availableMoves);
+            moves.add(toSquare);
+            availableMoves &= availableMoves - 1; // Clear the least significant set bit
         }
+
         return moves;
     }
+
 
 
     /**

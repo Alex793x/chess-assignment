@@ -1,7 +1,6 @@
 package chess.board;
 
 
-import chess.board.enums.GamePhase;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 import chess.engine.move_validation.interfaces.PieceValidator;
@@ -15,9 +14,9 @@ public final class Board {
 
     private Bitboard bitboard;
     private PieceColor currentPlayer;
-    private GamePhase gamePhase;
     private boolean check;
     private boolean checkmate;
+    private boolean isStalemate;
 
     public Board() {
         this.bitboard = new Bitboard();
@@ -87,7 +86,7 @@ public final class Board {
         bitboard.placePieceOnSquare(5, PieceType.BISHOP, PieceColor.WHITE);  // F1
         bitboard.placePieceOnSquare(6, PieceType.KNIGHT, PieceColor.WHITE);  // G1
         bitboard.placePieceOnSquare(7, PieceType.ROOK, PieceColor.WHITE);    // H1
-        for (int i = 7; i <= 15; i++) {
+        for (int i = 8; i <= 15; i++) {
             bitboard.placePieceOnSquare(i, PieceType.PAWN, PieceColor.WHITE); // A2 to H2
         }
 
@@ -151,6 +150,21 @@ public final class Board {
         }
         return null;
     }
+
+
+    public long getPieceBitboard(PieceType pieceType, PieceColor pieceColor) {
+        return switch (pieceType) {
+            case PAWN -> (pieceColor == PieceColor.WHITE) ? bitboard.getWhitePawns() : bitboard.getBlackPawns();
+            case KNIGHT -> (pieceColor == PieceColor.WHITE) ? bitboard.getWhiteKnights() : bitboard.getBlackKnights();
+            case BISHOP -> (pieceColor == PieceColor.WHITE) ? bitboard.getWhiteBishops() : bitboard.getBlackBishops();
+            case ROOK -> (pieceColor == PieceColor.WHITE) ? bitboard.getWhiteRooks() : bitboard.getBlackRooks();
+            case QUEEN -> (pieceColor == PieceColor.WHITE) ? bitboard.getWhiteQueens() : bitboard.getBlackQueens();
+            case KING -> (pieceColor == PieceColor.WHITE) ? bitboard.getWhiteKing() : bitboard.getBlackKing();
+        };
+    }
+
+
+
 
     public void updateGameState(PieceColor nextPlayer, boolean isCheck, boolean isCheckmate) {
         this.currentPlayer = nextPlayer;

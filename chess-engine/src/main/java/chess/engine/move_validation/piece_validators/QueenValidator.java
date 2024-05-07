@@ -23,8 +23,9 @@ public final class QueenValidator implements PieceValidator {
 
     public static boolean isValidQueenMove(Board board, int fromSquare, int toSquare, PieceColor playerColor) {
         if (!isQueenOnSquare(board, fromSquare, playerColor)) return false;
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
-        long queenAttacks = PreComputationHandler.QUEEN_ATTACKS[fromSquare];
+        long queenAttacks = PreComputationHandler.getQueenAttacks(fromSquare, allOccupancies);
         return (queenAttacks & (1L << toSquare)) != 0 &&
                 (board.getPieceColorAtSquare(toSquare) == null || board.getPieceColorAtSquare(toSquare) != playerColor);
     }

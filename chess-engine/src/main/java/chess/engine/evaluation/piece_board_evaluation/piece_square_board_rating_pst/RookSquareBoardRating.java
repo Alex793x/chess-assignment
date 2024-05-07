@@ -1,4 +1,4 @@
-package chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating;
+package chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating_pst;
 
 public final class RookSquareBoardRating {
 

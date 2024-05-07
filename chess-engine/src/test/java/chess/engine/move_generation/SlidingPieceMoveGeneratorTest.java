@@ -7,6 +7,7 @@ import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 import chess.exception.IllegalMoveException;
 import chess.engine.pre_computations.PreComputationHandler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import chess.ai_player.move_generation.SlidingPieceMoveGenerator;
@@ -25,6 +26,30 @@ class SlidingPieceMoveGeneratorTest {
         board = new Board();
         generator = new SlidingPieceMoveGenerator(board);
         clearBoard();
+
+        System.out.println("""
+                /**
+                     * The initialization of the boards ensures each position of
+                     *       A    B    C    D    E    F    G    H
+                     *    +----+----+----+----+----+----+----+----+
+                     *  8 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 |  8th rank
+                     *    +----+----+----+----+----+----+----+----+
+                     *  7 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 |  7th rank
+                     *    +----+----+----+----+----+----+----+----+
+                     *  6 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 |  6th rank
+                     *    +----+----+----+----+----+----+----+----+
+                     *  5 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 |  5th rank
+                     *    +----+----+----+----+----+----+----+----+
+                     *  4 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 |  4th rank
+                     *    +----+----+----+----+----+----+----+----+
+                     *  3 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 |  3rd rank
+                     *    +----+----+----+----+----+----+----+----+
+                     *  2 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | 15 |  2nd rank
+                     *    +----+----+----+----+----+----+----+----+
+                     *  1 |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  1st rank
+                     *    +----+----+----+----+----+----+----+----+
+                     *       A    B    C    D    E    F    G    H - file(s)
+                     * */""");
     }
 
     private void clearBoard() {
@@ -47,8 +72,9 @@ class SlidingPieceMoveGeneratorTest {
     void testRookMovesOnEmptyBoard() {
         board.getBitboard().placePieceOnSquare(0, PieceType.ROOK, PieceColor.WHITE); // Place rook at a1
         List<Integer> moves = generator.generateMovesForSlidingPiece(0, PieceColor.WHITE, PieceType.ROOK);
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
-        System.out.println("Rook Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.ROOK_ATTACKS[0]));
+        System.out.println("Rook Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.getRookAttacks(0, allOccupancies)));
         System.out.println("Generated moves: " + moves);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -87,8 +113,9 @@ class SlidingPieceMoveGeneratorTest {
     void testRookPlacedInCorner() {
         board.getBitboard().placePieceOnSquare(0, PieceType.ROOK, PieceColor.WHITE);
         List<Integer> moves = generator.generateMovesForSlidingPiece(0, PieceColor.WHITE, PieceType.ROOK);
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
-        System.out.println("Rook Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.ROOK_ATTACKS[0]));
+        System.out.println("Rook Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.getRookAttacks(0, allOccupancies)));
         System.out.println("Generated moves: " + moves);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -107,8 +134,9 @@ class SlidingPieceMoveGeneratorTest {
         board.getBitboard().placePieceOnSquare(25, PieceType.PAWN, PieceColor.BLACK);
 
         List<Integer> moves = generator.generateMovesForSlidingPiece(1, PieceColor.WHITE, PieceType.ROOK);
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
-        System.out.println("Rook Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.ROOK_ATTACKS[1]));
+        System.out.println("Rook Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.getRookAttacks(1, allOccupancies)));
         System.out.println("Generated moves: " + moves);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -125,8 +153,9 @@ class SlidingPieceMoveGeneratorTest {
     void testBishopMoves() {
         board.getBitboard().placePieceOnSquare(35, PieceType.BISHOP, PieceColor.BLACK);
         List<Integer> moves = generator.generateMovesForSlidingPiece(35, PieceColor.BLACK, PieceType.BISHOP);
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
-        System.out.println("Bishop Attacks Bitboard for 35: " + Long.toBinaryString(PreComputationHandler.BISHOP_ATTACKS[35]));
+        System.out.println("Bishop Attacks Bitboard for 35: " + Long.toBinaryString(PreComputationHandler.getBishopAttacks(35, allOccupancies)));
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
@@ -144,8 +173,9 @@ class SlidingPieceMoveGeneratorTest {
         board.getBitboard().placePieceOnSquare(28, PieceType.PAWN, PieceColor.BLACK); // Blocking pawn at b7 (diagonally from d4)
 
         List<Integer> moves = generator.generateMovesForSlidingPiece(35, PieceColor.BLACK, PieceType.BISHOP);
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
-        System.out.println("Bishop Attacks Bitboard for 35: " + Long.toBinaryString(PreComputationHandler.BISHOP_ATTACKS[35]));
+        System.out.println("Bishop Attacks Bitboard for 35: " + Long.toBinaryString(PreComputationHandler.getBishopAttacks(35, allOccupancies)));
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
@@ -164,8 +194,9 @@ class SlidingPieceMoveGeneratorTest {
     void testBishopPlacedInCorner() {
         board.getBitboard().placePieceOnSquare(0, PieceType.BISHOP, PieceColor.WHITE);
         List<Integer> moves = generator.generateMovesForSlidingPiece(0, PieceColor.WHITE, PieceType.BISHOP);
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
-        System.out.println("Bishop Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.BISHOP_ATTACKS[0]));
+        System.out.println("Bishop Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.getBishopAttacks(0, allOccupancies)));
         System.out.println("Generated moves: " + moves);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -185,8 +216,9 @@ class SlidingPieceMoveGeneratorTest {
         board.getBitboard().placePieceOnSquare(45, PieceType.PAWN, PieceColor.BLACK);
 
         List<Integer> moves = generator.generateMovesForSlidingPiece(0, PieceColor.WHITE, PieceType.BISHOP);
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
-        System.out.println("Bishop Attacks Bitboard for 35: " + Long.toBinaryString(PreComputationHandler.BISHOP_ATTACKS[0]));
+        System.out.println("Bishop Attacks Bitboard for 35: " + Long.toBinaryString(PreComputationHandler.getBishopAttacks(0, allOccupancies)));
         System.out.println("Generated moves: " + moves);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -203,12 +235,12 @@ class SlidingPieceMoveGeneratorTest {
     void testQueenMoves() {
         board.getBitboard().placePieceOnSquare(3, PieceType.QUEEN, PieceColor.WHITE);
         List<Integer> moves = generator.generateMovesForSlidingPiece(3, PieceColor.WHITE, PieceType.QUEEN);
-
-        System.out.println("Queen Attacks Bitboard for 3: " + Long.toBinaryString(PreComputationHandler.QUEEN_ATTACKS[3]));
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
+        System.out.println("Queen Attacks Bitboard for 3: " + Long.toBinaryString(PreComputationHandler.getQueenAttacks(3, allOccupancies)));
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
-        generator.moveSlidingPiece(3, 11, PieceColor.WHITE, PieceType.QUEEN);
+        generator.moveSlidingPiece(3, 12, PieceColor.WHITE, PieceType.QUEEN);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
@@ -222,8 +254,9 @@ class SlidingPieceMoveGeneratorTest {
         board.getBitboard().placePieceOnSquare(28, PieceType.PAWN, PieceColor.WHITE); // Blocking pawn at b7 (diagonally from d4)
 
         List<Integer> moves = generator.generateMovesForSlidingPiece(35, PieceColor.WHITE, PieceType.QUEEN);
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
-        System.out.println("Queen Attacks Bitboard for 35: " + Long.toBinaryString(PreComputationHandler.QUEEN_ATTACKS[35]));
+        System.out.println("Queen Attacks Bitboard for 35: " + Long.toBinaryString(PreComputationHandler.getQueenAttacks(35, allOccupancies)));
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
@@ -242,8 +275,9 @@ class SlidingPieceMoveGeneratorTest {
     void testQueenPlacedInCorner() {
         board.getBitboard().placePieceOnSquare(56, PieceType.QUEEN, PieceColor.WHITE);
         List<Integer> moves = generator.generateMovesForSlidingPiece(56, PieceColor.WHITE, PieceType.QUEEN);
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
-        System.out.println("Queen Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.QUEEN_ATTACKS[56]));
+        System.out.println("Queen Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.getQueenAttacks(56, allOccupancies)));
         System.out.println("Generated moves: " + moves);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -262,8 +296,9 @@ class SlidingPieceMoveGeneratorTest {
         board.getBitboard().placePieceOnSquare(30, PieceType.ROOK, PieceColor.BLACK);
 
         List<Integer> moves = generator.generateMovesForSlidingPiece(3, PieceColor.WHITE, PieceType.QUEEN);
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
-        System.out.println("Queen Attacks Bitboard for 3: " + Long.toBinaryString(PreComputationHandler.QUEEN_ATTACKS[3]));
+        System.out.println("Queen Attacks Bitboard for 3: " + Long.toBinaryString(PreComputationHandler.getQueenAttacks(3, allOccupancies)));
         System.out.println("Generated moves: " + moves);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());

@@ -1,4 +1,4 @@
-package chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating;
+package chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating_pst;
 
 public final class QueenSquareBoardRating {
 //FIXME The boards are flipped wrongly .... Needs to be flipped, look at source for more info
@@ -6,7 +6,7 @@ public final class QueenSquareBoardRating {
      * Source: <a href="https://www.talkchess.com/forum3/viewtopic.php?f=2&t=68311&start=19">talkchess</a>
      * Queen midgame
      */
-    public static final int[] WHITE_QUEEN_MID_GAME_SQUARE_RATING = {
+    public static final int[] BLACK_QUEEN_MID_GAME_SQUARE_RATING = {
             -1,  -18,  -9,  10, -15, -25, -31, -50,
             -35,  -8,  11,   2,   8,  15,  -3,   1,
             -14,   2, -11,  -2,  -5,   2,  14,   5,
@@ -18,7 +18,7 @@ public final class QueenSquareBoardRating {
     };
 
 
-    public static final int[] BLACK_QUEEN_MID_GAME_SQUARE_RATING = {
+    public static final int[] WHITE_QUEEN_MID_GAME_SQUARE_RATING = {
             -28,   0,  29,  12,  59,  44,  43,  45,
             -24, -39,  -5,   1, -16,  57,  28,  54,
             -13, -17,   7,   8,  29,  56,  47,  57,
@@ -33,7 +33,7 @@ public final class QueenSquareBoardRating {
      * Source: <a href="https://www.talkchess.com/forum3/viewtopic.php?f=2&t=68311&start=19">talkchess</a>
      * Queen endgame
      */
-    public static final int[] WHITE_QUEEN_END_GAME_SQUARE_RATING = {
+    public static final int[] BLACK_QUEEN_END_GAME_SQUARE_RATING = {
             -33, -28, -22, -43, -5,  -32, -20, -41,
             -22, -23, -30, -16, -16, -23, -36, -32,
             -16, -27,  15,   6,   9,  17,  10,   5,
@@ -45,7 +45,7 @@ public final class QueenSquareBoardRating {
     };
 
 
-    public static final int[] BLACK_QUEEN_END_GAME_SQUARE_RATING = {
+    public static final int[] WHITE_QUEEN_END_GAME_SQUARE_RATING = {
              -9,  22,  22,  27,  27,  19,  10,  20,
             -17,  20,  32,  41,  58,  25,  30,   0,
             -20,   6,   9,  49,  47,  35,  19,   9,

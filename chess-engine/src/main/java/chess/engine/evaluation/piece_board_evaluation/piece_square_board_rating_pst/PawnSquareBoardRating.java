@@ -1,4 +1,4 @@
-package chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating;
+package chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating_pst;
 
 
 public final class PawnSquareBoardRating {
@@ -7,7 +7,7 @@ public final class PawnSquareBoardRating {
      *  Source: <a href="https://www.talkchess.com/forum3/viewtopic.php?f=2&t=68311&start=19">talkchess</a>
      *  pawn midgame
      */
-    public static final int[] WHITE_PAWN_MID_GAME_SQUARE_RATING = {
+    public static final int[] BLACK_PAWN_MID_GAME_SQUARE_RATING = {
               0,   0,   0,   0,   0,   0,  0,   0,
             -35,  -1, -20, -23, -15,  24, 38, -22,
             -26,  -4,  -4, -10,   3,   3, 33, -12,
@@ -18,7 +18,7 @@ public final class PawnSquareBoardRating {
               0,   0,   0,   0,   0,   0,  0,   0,
     };
 
-    public static final int[] BLACK_PAWN_MID_GAME_SQUARE_RATING = {
+    public static final int[] WHITE_PAWN_MID_GAME_SQUARE_RATING = {
               0,   0,   0,   0,   0,   0,  0,   0,
              98, 134,  61,  95,  68, 126, 34, -11,
              -6,   7,  26,  31,  65,  56, 25, -20,
@@ -34,7 +34,7 @@ public final class PawnSquareBoardRating {
      *  Source: <a href="https://www.talkchess.com/forum3/viewtopic.php?f=2&t=68311&start=19">talkchess</a>
      *  pawn endgame
      */
-    public static final int[] WHITE_PAWN_END_GAME_SQUARE_RATING = {
+    public static final int[] BLACK_PAWN_END_GAME_SQUARE_RATING = {
               0,   0,   0,   0,   0,   0,   0,   0,
              13,   8,   8,  10,  13,   0,   2,  -7,
               4,   7,  -6,   1,   0,  -5,  -1,  -8,
@@ -46,7 +46,7 @@ public final class PawnSquareBoardRating {
     };
 
 
-    public static final int[] BLACK_PAWN_END_GAME_SQUARE_RATING = {
+    public static final int[] WHITE_PAWN_END_GAME_SQUARE_RATING = {
               0,   0,   0,   0,   0,   0,   0,   0,
             178, 173, 158, 134, 147, 132, 165, 187,
              94, 100,  85,  67,  56,  53,  82,  84,

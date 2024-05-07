@@ -21,8 +21,9 @@ public final class RookValidator {
      */
     public static boolean isValidRookMove(Board board, int fromSquare, int toSquare, PieceColor playerColor) {
         if (!isRookOnSquare(board, fromSquare, playerColor)) return false;
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
-        long rooksAttacks = PreComputationHandler.ROOK_ATTACKS[fromSquare];
+        long rooksAttacks = PreComputationHandler.getRookAttacks(fromSquare, allOccupancies);
 
         return (rooksAttacks & (1L << toSquare)) != 0 &&
                 (board.getPieceColorAtSquare(toSquare) == null || board.getPieceColorAtSquare(toSquare) != playerColor);

@@ -20,7 +20,8 @@ public final class BishopValidator {
      */
     public static boolean isValidBishopMove(Board board, int fromSquare, int toSquare, PieceColor playerColor) {
         if (!isBishopOnSquare(board, fromSquare, playerColor)) return false;
-        long bishopAttacks = PreComputationHandler.BISHOP_ATTACKS[fromSquare];
+        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
+        long bishopAttacks = PreComputationHandler.getBishopAttacks(fromSquare, allOccupancies);
         return (bishopAttacks & (1L << toSquare)) != 0 &&
                 (board.getPieceColorAtSquare(toSquare) == null || board.getPieceColorAtSquare(toSquare) != playerColor);
     }

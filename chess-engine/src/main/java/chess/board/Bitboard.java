@@ -29,9 +29,16 @@ public class Bitboard {
      * a loop iterates from 0 to 63 (inclusive) to precompute the bit masks for each square.
      */
     static {
-        for (int i = 0; i < 64; i++) {
+        for (int i = 0; i < 64; ++i) {
             SQUARE_MASKS[i] = 1L << i;
         }
+    }
+
+    public long getFileMask(int file) {
+        if (file < 0 || file > 7) {
+            throw new IllegalArgumentException("Invalid file: " + file);
+        }
+        return 0x0101010101010101L << file;
     }
 
     /**
@@ -186,6 +193,26 @@ public class Bitboard {
             for (int file = 0; file < 8; file++) {
                 int i = rank * 8 + file;
                 char piece = getPiece(i);
+                sb.append("  ").append(piece).append(" |");
+            }
+            sb.append("  ").append(rank + 1).append("th rank\n");
+            sb.append("  +----+----+----+----+----+----+----+----+\n");
+        }
+
+        sb.append("     A    B    C    D    E    F    G    H - file(s)\n");
+        return sb.toString();
+    }
+
+    public static String convertBitboardToBinaryStringMaterial(int[] board) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("     A    B    C    D    E    F    G    H\n");
+        sb.append("  +----+----+----+----+----+----+----+----+\n");
+
+        for (int rank = 7; rank >= 0; rank--) {
+            sb.append(rank + 1).append(" |");
+            for (int file = 0; file < 8; file++) {
+                int i = rank * 8 + file;
+                int piece = board[i];
                 sb.append("  ").append(piece).append(" |");
             }
             sb.append("  ").append(rank + 1).append("th rank\n");
