@@ -3,13 +3,10 @@ package chessbackend;
 import chess.board.Board;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
-import chess.engine.evaluation.piece_board_evaluation.piece_square_board_rating_pst.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static chess.engine.evaluation.GameStateEvaluation.*;
-import static chess.engine.evaluation.piece_attack_evaluation.CaptureEvaluation.staticExchangeEvaluation;
-import static chess.engine.evaluation.piece_board_evaluation.PieceSquareEvaluation.evaluatePiecePosition;
 
 class BitboardTest {
     Board newBoard = new Board();
@@ -73,7 +70,7 @@ class BitboardTest {
 
     @Test
     void testConvertBitboardToFEN() {
-        String fen = "2r2bkr/5ppp/b6q/5B2/8/3Q4/PPP5/1KR2R2"; // Custom FEN for this board setup
+        String fen = "2n5/5pn1/P2P1bP1/pk1PN2r/q3rPPB/p2P1NQ1/BP3K2/q2b4 w - - 0 1"; // Custom FEN for this board setup
         newBoard.getBitboard().readFEN_String(fen);
         System.out.println("BOARD STATE READ FROM FEN");
         System.out.println(newBoard.getBitboard().convertBitboardToBinaryString());

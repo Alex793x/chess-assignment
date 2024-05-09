@@ -48,3 +48,7 @@ mongo:
   db:
     user: ${MONGO_DB_USER}
     password: ${MONGO_DB_PASSWORD}
+
+rsocket-chess-engine:
+  host: ${RSOCKET_CHESS_ENGINE_HOST}
+  port: ${RSOCKET_CHESS_ENGINE_PORT}

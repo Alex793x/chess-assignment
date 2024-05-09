@@ -11,6 +11,7 @@ public class ChessEngineApplication {
     public static void main(String[] args) {
         ConfigLoader config = new ConfigLoader();
         int port = config.getServerPort();
+        String host = config.getServerHost();
 
         RSocketServer rSocketServer = RSocketServer.create(SocketAcceptor.forRequestResponse(
                 payload -> {
@@ -22,7 +23,7 @@ public class ChessEngineApplication {
                 }));
 
         //FIXME This needs to be environmental values, ensuring Docker can pinpoint to the gateway/backend for connection
-        CloseableChannel server = rSocketServer.bindNow(TcpServerTransport.create("localhost", port));
+        CloseableChannel server = rSocketServer.bindNow(TcpServerTransport.create(host, port));
 
         System.out.println("Server is running on port: " + port);
 

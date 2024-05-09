@@ -17,6 +17,10 @@ public class ConfigLoader {
     }
 
     public int getServerPort() {
-        return Integer.parseInt(properties.getProperty("server.port", "7000"));  // Default to 7000 if not specified
+        return Integer.parseInt(properties.getProperty("server.port", "8090"));  // Default to 7000 if not specified
+    }
+
+    public String getServerHost() {
+        return properties.getProperty("server.host", "https://chess-awesome.com");
     }
 }

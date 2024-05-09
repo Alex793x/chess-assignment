@@ -2,6 +2,7 @@ package org.kea.chessbackend.config;
 
 import io.rsocket.core.Resume;
 import io.rsocket.frame.decoder.PayloadDecoder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.rsocket.server.RSocketServerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,9 +18,15 @@ import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.util.Map;
-// Test
+
 @Configuration
 public class RsocketConfig {
+
+    @Value("${rsocket-chess-engine.host}")
+    String rsocketChessEngineHost;
+
+    @Value("${rsocket-chess-engine.port}")
+    int rsocketChessEnginePort;
 
     @Bean
     public RSocketStrategies rSocketStrategies() {
@@ -54,5 +61,13 @@ public class RsocketConfig {
                 .payloadDecoder(PayloadDecoder.ZERO_COPY)
                 .fragment(65536)
                 .resume(resume());
+    }
+
+    @Bean
+    public RSocketRequester chessEngineRsocketRequester(RSocketRequester.Builder builder) {
+        return builder
+                .rsocketStrategies(rSocketStrategies())
+                .tcp(rsocketChessEngineHost, rsocketChessEnginePort);
+
     }
 }
