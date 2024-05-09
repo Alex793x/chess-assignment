@@ -313,4 +313,38 @@ public class Bitboard {
             case BLACK -> blackKing | blackQueens | blackRooks | blackBishops | blackKnights | blackPawns;
         };
     }
+
+    public PieceType getPieceTypeAtSquare(int square) {
+        for (PieceColor color : PieceColor.values()) {
+            for (PieceType type : PieceType.values()) {
+                if (isSquareOccupiedByPiece(square, type, color)) {
+                    return type;
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean isSquareEmpty(int square, long allOccupancies) {
+        return (allOccupancies & (1L << square)) == 0;
+    }
+
+    public boolean isSquareOccupiedByEnemy(int square, long enemyOccupancies) {
+        return (enemyOccupancies & (1L << square)) != 0;
+    }
+
+    public boolean isWithinBoardBounds(int square) {
+        return square >= 0 && square < 64;
+    }
+
+    public PieceColor getPieceColorAtSquare(int square) {
+        for (PieceColor color : PieceColor.values()) {
+            for (PieceType type : PieceType.values()) {
+                if (isSquareOccupiedByPiece(square, type, color)) {
+                    return color;
+                }
+            }
+        }
+        return null;
+    }
 }

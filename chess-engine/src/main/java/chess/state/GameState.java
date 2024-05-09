@@ -4,43 +4,43 @@ import chess.ai_player.move_generation.KingMoveGenerator;
 import chess.ai_player.move_generation.KnightMoveGenerator;
 import chess.ai_player.move_generation.PawnMoveGenerator;
 import chess.ai_player.move_generation.SlidingPieceMoveGenerator;
-import chess.board.Board;
+import chess.board.Bitboard;
+
+import chess.board.GameStateData;
 import chess.board.Move;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GameState {
-    private Board board;
-    private PieceColor currentPlayer;
+    private final Bitboard bitboard;
+    private final PieceColor currentPlayer;
+    private final int kingPosition;
 
     private final KingMoveGenerator kingMoveGenerator;
 
     // Constructor
-    public GameState(Board board) {
-        this.board = board;
-        this.currentPlayer = PieceColor.WHITE;
-        kingMoveGenerator = new KingMoveGenerator(board);
+    public GameState(GameStateData gameStateData) {
+        this.bitboard = gameStateData.getBitboard();
+        this.currentPlayer = gameStateData.getCurrentPlayer();
+        this.kingPosition = gameStateData.getKingPosition();
+        kingMoveGenerator = new KingMoveGenerator(bitboard);
     }
 
     public boolean isKingInCheck() {
-        int kingPosition = board.getKingPosition(currentPlayer);
         if (kingPosition == -1) {
-            System.err.println("King not found for " + currentPlayer);
+            //System.err.println("King not found for " + currentPlayer);
             return false;  // or handle appropriately
         }
         return isKingPositionUnderAttack(kingPosition, currentPlayer.opposite());
     }
-
 
     public boolean isKingInCheckmate() {
         if (!isKingInCheck()) {
             return false;
         }
 
-        int kingPosition = board.getKingPosition(currentPlayer);
         List<Move> possibleMoves = kingMoveGenerator.generateMovesForKing(kingPosition, currentPlayer);
 
         // Check if there's any valid move where the king is not under attack
@@ -67,7 +67,7 @@ public class GameState {
     }
 
     private long getThreatBitboard(PieceType pieceType, PieceColor enemyColor) {
-        long pieces = board.getBitboard().getBitboardForPieceTypeAndColor(pieceType, enemyColor);
+        long pieces = bitboard.getBitboardForPieceTypeAndColor(pieceType, enemyColor);
         long movesBitboard = 0L;
 
         while (pieces != 0) {
@@ -75,10 +75,10 @@ public class GameState {
             pieces &= ~(1L << fromSquare); // Clear the bit to move to the next piece
 
             List<Move> moves = switch (pieceType) {
-                case PAWN -> new PawnMoveGenerator(board).generateMovesForPawn(fromSquare, enemyColor);
-                case KNIGHT -> new KnightMoveGenerator(board).generateMovesForKnight(fromSquare, enemyColor);
+                case PAWN -> new PawnMoveGenerator(bitboard).generateMovesForPawn(fromSquare, enemyColor);
+                case KNIGHT -> new KnightMoveGenerator(bitboard).generateMovesForKnight(fromSquare, enemyColor);
                 default -> // For BISHOP, ROOK, QUEEN
-                        new SlidingPieceMoveGenerator(board).generateMovesForSlidingPiece(fromSquare, enemyColor, pieceType);
+                        new SlidingPieceMoveGenerator(bitboard).generateMovesForSlidingPiece(fromSquare, enemyColor, pieceType);
             };
 
             for (Move move : moves) {
@@ -88,8 +88,6 @@ public class GameState {
 
         return movesBitboard;
     }
-
-
 
 
 }

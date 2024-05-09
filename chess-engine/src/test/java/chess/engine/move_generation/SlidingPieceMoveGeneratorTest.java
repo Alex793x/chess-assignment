@@ -25,7 +25,7 @@ class SlidingPieceMoveGeneratorTest {
     @BeforeEach
     void setUp() {
         board = new Board();
-        generator = new SlidingPieceMoveGenerator(board);
+        generator = new SlidingPieceMoveGenerator(board.getBitboard());
         clearBoard();
 
         System.out.println("""

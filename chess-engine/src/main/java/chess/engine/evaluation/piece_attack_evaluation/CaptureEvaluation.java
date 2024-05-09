@@ -6,8 +6,6 @@ import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 import chess.engine.pre_computations.PreComputationHandler;
 
-import java.util.Objects;
-
 public class CaptureEvaluation {
 
     public static int staticExchangeEvaluation(Board board, Move move, PieceColor side) {
@@ -17,44 +15,75 @@ public class CaptureEvaluation {
 
         // Verify if the move is a capturing move and the opponent piece is present
         if (move.getCapturedPieceType() == null) {
+            System.out.println("No capturing move");
             return 0;  // No capturing move
         }
 
-        long attackers = getAttackers(board, square, side);
+        // Create a copy of the board to avoid modifying the original board state
+        Board boardCopy = board.copy();
+        System.out.println(boardCopy.getCurrentPlayer());
 
-        while (attackers != 0) {
-            PieceType smallestAttacker = getSmallestAttacker(board, attackers, side);
-            if (smallestAttacker == null) {
-                break;  // No more attackers
-            }
+        // Make the initial capture
+        int capturedValue = move.getCapturedPieceType().getMidGameValue();
+        boardCopy.getBitboard().removePieceFromSquare(square, move.getCapturedPieceType(), opponentColor);
+        boardCopy.getBitboard().placePieceOnSquare(square, move.getPieceType(), side);
 
-            // Calculate the value of the opponent's piece at the square
-            int capturedValue = move.getCapturedPieceType().getMidGameValue();
+        netValue = capturedValue;
 
-            // Simulate capture: remove the smallest attacker
-            board.getBitboard().removePieceFromSquare(square, smallestAttacker, side);
-            attackers = updateAttackers(board, square, side);
+        while (true) {
+            long attackers = getAttackers(boardCopy, square, opponentColor);
 
-            // Recursively evaluate opponent's best recapture sequence
-            int counterValue = staticExchangeEvaluation(board, new Move(square, square, smallestAttacker, null, opponentColor), opponentColor);
+            if (attackers == 0) break; // No more attackers
 
-            // Undo the capture
-            board.getBitboard().placePieceOnSquare(square, smallestAttacker, side);
+            PieceType smallestAttacker = getSmallestAttacker(boardCopy, attackers, opponentColor);
+            int attackerSquare = getSquareOfSmallestAttacker(boardCopy, smallestAttacker, opponentColor);
 
-            // Update net value considering this capture sequence
-            netValue = capturedValue - counterValue;
+            // Make the counter-capture
+            int counterValue = smallestAttacker.getMidGameValue();
+            boardCopy.getBitboard().removePieceFromSquare(square, move.getPieceType(), side);
+            boardCopy.getBitboard().removePieceFromSquare(attackerSquare, smallestAttacker, opponentColor);
+            boardCopy.getBitboard().placePieceOnSquare(square, smallestAttacker, opponentColor);
 
-            if (netValue <= 0) {
-                break;  // Stop if the sequence is not favorable
-            }
+            netValue -= counterValue;
+
+            if (netValue < 0) break; // Stop if the sequence is not favorable
+
+            attackers = getAttackers(boardCopy, square, side);
+
+            if (attackers == 0) break; // No more attackers
+
+            smallestAttacker = getSmallestAttacker(boardCopy, attackers, side);
+            attackerSquare = getSquareOfSmallestAttacker(boardCopy, smallestAttacker, side);
+
+            // Make the re-capture
+            capturedValue = smallestAttacker.getMidGameValue();
+            boardCopy.getBitboard().removePieceFromSquare(square, smallestAttacker, opponentColor);
+            boardCopy.getBitboard().placePieceOnSquare(square, smallestAttacker, side);
+
+            netValue += capturedValue;
         }
 
+        System.out.println("Final net value: " + netValue);
         return netValue;
     }
 
+
+    private static int getSquareOfSmallestAttacker(Board board, PieceType pieceType, PieceColor side) {
+        long bitboard = board.getPieceBitboard(pieceType, side);
+        for (int square = 0; square < 64; square++) {
+            if ((bitboard & (1L << square)) != 0) {
+                return square;
+            }
+        }
+        return -1; // or handle this case appropriately
+    }
+
+
     private static long updateAttackers(Board board, int square, PieceColor side) {
         // This method would recalculate all attackers after a change on the board.
-        return getAttackers(board, square, side);
+        long updatedAttackers = getAttackers(board, square, side);
+        System.out.println("Updated attackers: " + Long.toBinaryString(updatedAttackers));
+        return updatedAttackers;
     }
 
     private static long getAttackers(Board board, int square, PieceColor side) {
@@ -66,23 +95,32 @@ public class CaptureEvaluation {
         long queenAttackers = PreComputationHandler.getQueenAttacks(square, occupancies);
         long kingAttackers = PreComputationHandler.KING_ATTACKS[square] & occupancies;
 
-        return pawnAttackers | knightAttackers | bishopAttackers | rookAttackers | queenAttackers | kingAttackers;
+        long attackers = pawnAttackers | knightAttackers | bishopAttackers | rookAttackers | queenAttackers | kingAttackers;
+        System.out.println("Attackers: " + Long.toBinaryString(attackers));
+        return attackers;
     }
 
     private static PieceType getSmallestAttacker(Board board, long attackers, PieceColor side) {
         if ((attackers & board.getPieceBitboard(PieceType.PAWN, side)) != 0) {
+            System.out.println("Smallest attacker:" + side + " PAWN");
             return PieceType.PAWN;
         } else if ((attackers & board.getPieceBitboard(PieceType.KNIGHT, side)) != 0) {
+            System.out.println("Smallest attacker: " + side + " KNIGHT");
             return PieceType.KNIGHT;
         } else if ((attackers & board.getPieceBitboard(PieceType.BISHOP, side)) != 0) {
+            System.out.println("Smallest attacker: " + side + " BISHOP");
             return PieceType.BISHOP;
         } else if ((attackers & board.getPieceBitboard(PieceType.ROOK, side)) != 0) {
+            System.out.println("Smallest attacker: " + side + " ROOK");
             return PieceType.ROOK;
         } else if ((attackers & board.getPieceBitboard(PieceType.QUEEN, side)) != 0) {
+            System.out.println("Smallest attacker: " + side + " QUEEN");
             return PieceType.QUEEN;
         } else if ((attackers & board.getPieceBitboard(PieceType.KING, side)) != 0) {
+            System.out.println("Smallest attacker: " + side + " KING");
             return PieceType.KING;
         }
+        System.out.println("No smallest attacker found");
         return null;
     }
 }

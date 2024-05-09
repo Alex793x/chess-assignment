@@ -18,7 +18,7 @@ class GameStateTest {
     @BeforeEach
     void setUp() {
         board = new Board();
-        gameState = new GameState(board);
+        gameState = new GameState(board.getGameStateData());
         clearBoard();
     }
 
@@ -66,7 +66,7 @@ class GameStateTest {
         board.getBitboard().placePieceOnSquare(2, PieceType.QUEEN, PieceColor.BLACK);
         board.getBitboard().placePieceOnSquare(16, PieceType.QUEEN, PieceColor.BLACK);
 
-        KingMoveGenerator kingMoveGenerator = new KingMoveGenerator(board);
+        KingMoveGenerator kingMoveGenerator = new KingMoveGenerator(board.getBitboard());
         System.out.println("King moves: " + kingMoveGenerator.generateMovesForKing(0, PieceColor.WHITE));
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());

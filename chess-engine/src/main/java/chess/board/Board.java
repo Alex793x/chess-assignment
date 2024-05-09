@@ -24,16 +24,17 @@ public final class Board {
 
     public Board() {
         this.bitboard = new Bitboard();
-        this.gameState = new GameState(this);
         this.currentPlayer = PieceColor.WHITE;
+        initializeBoard();
+        this.gameState = new GameState(getGameStateData()); // Use the new constructor
         this.check = gameState.isKingInCheck();
         this.checkmate = gameState.isKingInCheckmate();
-        initializeBoard();
     }
 
     public Board(Board original) {
-        this.bitboard = new Bitboard(original.getBitboard());  // Assumes Bitboard has a copy constructor
+        this.bitboard = new Bitboard(original.getBitboard());
         this.currentPlayer = original.currentPlayer;
+        this.gameState = new GameState(getGameStateData()); // Use the new constructor
         this.check = gameState.isKingInCheck();
         this.checkmate = gameState.isKingInCheckmate();
         this.isStalemate = original.isStalemate;
@@ -117,6 +118,34 @@ public final class Board {
             bitboard.placePieceOnSquare(i, PieceType.PAWN, PieceColor.BLACK); // A7 to H7
         }
 
+    }
+
+    public Board copy() {
+        Board boardCopy = new Board();
+
+        // Copy the current player
+        boardCopy.setCurrentPlayer(this.getCurrentPlayer());
+
+        // Copy the bitboards
+        boardCopy.getBitboard().setWhitePawns(this.getBitboard().getWhitePawns());
+        boardCopy.getBitboard().setWhiteKnights(this.getBitboard().getWhiteKnights());
+        boardCopy.getBitboard().setWhiteBishops(this.getBitboard().getWhiteBishops());
+        boardCopy.getBitboard().setWhiteRooks(this.getBitboard().getWhiteRooks());
+        boardCopy.getBitboard().setWhiteQueens(this.getBitboard().getWhiteQueens());
+        boardCopy.getBitboard().setWhiteKing(this.getBitboard().getWhiteKing());
+
+        boardCopy.getBitboard().setBlackPawns(this.getBitboard().getBlackPawns());
+        boardCopy.getBitboard().setBlackKnights(this.getBitboard().getBlackKnights());
+        boardCopy.getBitboard().setBlackBishops(this.getBitboard().getBlackBishops());
+        boardCopy.getBitboard().setBlackRooks(this.getBitboard().getBlackRooks());
+        boardCopy.getBitboard().setBlackQueens(this.getBitboard().getBlackQueens());
+        boardCopy.getBitboard().setBlackKing(this.getBitboard().getBlackKing());
+        boardCopy.setCheck(this.check);
+        boardCopy.setCheckmate(this.checkmate);
+        boardCopy.setStalemate(this.isStalemate);
+        boardCopy.setGameState(this.gameState);
+
+        return boardCopy;
     }
 
 
@@ -223,18 +252,10 @@ public final class Board {
         return currentPlayer == PieceColor.WHITE;
     }
 
-    public boolean isSquareEmpty(int square, long allOccupancies) {
-        return (allOccupancies & (1L << square)) == 0;
-    }
 
     public boolean isSquareOccupiedByEnemy(int square, long enemyOccupancies) {
         return (enemyOccupancies & (1L << square)) != 0;
     }
-
-    public boolean isWithinBoardBounds(int square) {
-        return square >= 0 && square < 64;
-    }
-
 
 
 
@@ -244,9 +265,8 @@ public final class Board {
             System.err.println("No king found for " + color + ". Bitboard is zero.");
             return -1; // or handle it another way that suits your application
         }
-        int position = Long.numberOfTrailingZeros(kingBitboard);
         //System.out.println("King for " + color + " found at position " + position);
-        return position;
+        return Long.numberOfTrailingZeros(kingBitboard);
     }
 
 
@@ -261,6 +281,10 @@ public final class Board {
             index++;
         }
         return index;
+    }
+
+    public GameStateData getGameStateData() {
+        return new GameStateData(currentPlayer, bitboard, getKingPosition(currentPlayer));
     }
 
     public boolean isGameOver() {

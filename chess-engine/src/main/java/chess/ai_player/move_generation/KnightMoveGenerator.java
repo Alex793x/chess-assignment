@@ -1,6 +1,7 @@
 
 package chess.ai_player.move_generation;
 
+import chess.board.Bitboard;
 import chess.board.Board;
 import chess.board.Move;
 import chess.board.enums.PieceColor;
@@ -13,10 +14,10 @@ import java.util.List;
 
 public class KnightMoveGenerator {
 
-    private final Board board;
+    private final Bitboard bitboard;
 
-    public KnightMoveGenerator(Board board) {
-        this.board = board;
+    public KnightMoveGenerator(Bitboard bitboard) {
+        this.bitboard = bitboard;
     }
 
     /**
@@ -30,7 +31,7 @@ public class KnightMoveGenerator {
     public List<Move> generateMovesForKnight(int square, PieceColor color) {
         List<Move> moves = new ArrayList<>();
         long possibleMoves = PreComputationHandler.KNIGHT_ATTACKS[square];
-        long ownPieces = board.getBitboard().getOccupancies(color);
+        long ownPieces = bitboard.getOccupancies(color);
 
         // Use bitwise AND to get the available moves considering the same color occupancies
         long availableMoves = possibleMoves & ~ownPieces;
@@ -38,7 +39,7 @@ public class KnightMoveGenerator {
         // Iterate through the available moves using bitwise operations
         while (availableMoves != 0) {
             int toSquare = Long.numberOfTrailingZeros(availableMoves);
-            PieceType capturedPieceType = board.getPieceTypeAtSquare(toSquare);
+            PieceType capturedPieceType = bitboard.getPieceTypeAtSquare(toSquare);
             moves.add(new Move(square, toSquare, PieceType.KNIGHT, capturedPieceType, color));
             availableMoves &= availableMoves - 1; // Clear the least significant set bit
         }
@@ -64,8 +65,8 @@ public class KnightMoveGenerator {
     public void moveKnight(int fromSquare, int toSquare, PieceColor color) throws IllegalMoveException {
         List<Move> validMoves = generateMovesForKnight(fromSquare, color);
         if (validMoves.contains(toSquare)) {
-            board.getBitboard().removePieceFromSquare(fromSquare, PieceType.KNIGHT, color);
-            board.getBitboard().placePieceOnSquare(toSquare, PieceType.KNIGHT, color);
+            bitboard.removePieceFromSquare(fromSquare, PieceType.KNIGHT, color);
+            bitboard.placePieceOnSquare(toSquare, PieceType.KNIGHT, color);
             //System.out.println("Move successful: Knight moved from " + fromSquare + " to " + toSquare);
         } else {
             throw new IllegalMoveException("Invalid move: Knight cannot move from " + fromSquare + " to " + toSquare);

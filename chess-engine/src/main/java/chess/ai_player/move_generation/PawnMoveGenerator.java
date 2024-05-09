@@ -1,5 +1,6 @@
 package chess.ai_player.move_generation;
 
+import chess.board.Bitboard;
 import chess.board.Board;
 import chess.board.Move;
 import chess.board.enums.PieceColor;
@@ -11,13 +12,13 @@ import java.util.List;
 
 public class PawnMoveGenerator {
 
-    private final Board board;
+    private final Bitboard bitboard;
 
     public static final long WHITE_START_RANK_MASK_FOR_DOUBLE_FORWARD_MOVE = 0x000000000000FF00L;
     public static final long BLACK_START_RANK_MASK_FOR_DOUBLE_FORWARD_MOVE = 0x00FF000000000000L;
 
-    public PawnMoveGenerator(Board board) {
-        this.board = board;
+    public PawnMoveGenerator(Bitboard bitboard) {
+        this.bitboard = bitboard;
     }
 
     /**
@@ -32,8 +33,8 @@ public class PawnMoveGenerator {
      */
     public List<Move> generateMovesForPawn(int square, PieceColor color) {
         List<Move> moves = new ArrayList<>();
-        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
-        long enemyOccupancies = board.getBitboard().getOccupancies(color == PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE);
+        long allOccupancies = bitboard.getOccupancies(PieceColor.WHITE) | bitboard.getOccupancies(PieceColor.BLACK);
+        long enemyOccupancies = bitboard.getOccupancies(color == PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE);
         long pawnBitboard = 1L << square;
 
         int direction = color == PieceColor.WHITE ? 8 : -8;
@@ -43,12 +44,12 @@ public class PawnMoveGenerator {
         long startRankMask = color == PieceColor.WHITE ? WHITE_START_RANK_MASK_FOR_DOUBLE_FORWARD_MOVE : BLACK_START_RANK_MASK_FOR_DOUBLE_FORWARD_MOVE;
 
         // Single step forward move
-        if (board.isWithinBoardBounds(singleMoveTarget) && board.isSquareEmpty(singleMoveTarget, allOccupancies)) {
+        if (bitboard.isWithinBoardBounds(singleMoveTarget) && bitboard.isSquareEmpty(singleMoveTarget, allOccupancies)) {
             moves.add(new Move(square, singleMoveTarget, PieceType.PAWN, null, color));
         }
 
         // Double step forward move
-        if ((pawnBitboard & startRankMask) != 0 && board.isSquareEmpty(singleMoveTarget, allOccupancies) && board.isSquareEmpty(doubleMoveTarget, allOccupancies)) {
+        if ((pawnBitboard & startRankMask) != 0 && bitboard.isSquareEmpty(singleMoveTarget, allOccupancies) && bitboard.isSquareEmpty(doubleMoveTarget, allOccupancies)) {
             moves.add(new Move(square, doubleMoveTarget, PieceType.PAWN, null, color));
         }
 
@@ -56,8 +57,8 @@ public class PawnMoveGenerator {
         int[] captureOffsets = color == PieceColor.WHITE ? new int[]{-7, 9} : new int[]{-9, 7};
         for (int offset : captureOffsets) {
             int captureSquare = square + offset;
-            if (board.isWithinBoardBounds(captureSquare) && board.isSquareOccupiedByEnemy(captureSquare, enemyOccupancies)) {
-                PieceType capturedPieceType = board.getPieceTypeAtSquare(captureSquare);
+            if (bitboard.isWithinBoardBounds(captureSquare) && bitboard.isSquareOccupiedByEnemy(captureSquare, enemyOccupancies)) {
+                PieceType capturedPieceType = bitboard.getPieceTypeAtSquare(captureSquare);
                 moves.add(new Move(square, captureSquare, PieceType.PAWN, capturedPieceType, color));
             }
         }
@@ -79,11 +80,11 @@ public class PawnMoveGenerator {
      */
     public void movePawn(int fromSquare, int toSquare, PieceColor color) throws IllegalMoveException {
         List<Move> validMoves = generateMovesForPawn(fromSquare, color);
-        Move intendedMove = new Move(fromSquare, toSquare, PieceType.PAWN, board.getPieceTypeAtSquare(toSquare), color);
+        Move intendedMove = new Move(fromSquare, toSquare, PieceType.PAWN, bitboard.getPieceTypeAtSquare(toSquare), color);
 
         if (validMoves.contains(intendedMove)) {
-            board.getBitboard().removePieceFromSquare(fromSquare, PieceType.PAWN, color);
-            board.getBitboard().placePieceOnSquare(toSquare, PieceType.PAWN, color);
+            bitboard.removePieceFromSquare(fromSquare, PieceType.PAWN, color);
+            bitboard.placePieceOnSquare(toSquare, PieceType.PAWN, color);
             //System.out.println("Move successful: Pawn moved from " + fromSquare + " to " + toSquare);
         } else {
             throw new IllegalMoveException("Invalid move: Pawn cannot move from " + fromSquare + " to " + toSquare);

@@ -1,5 +1,6 @@
 package chess.ai_player.move_generation;
 
+import chess.board.Bitboard;
 import chess.board.Board;
 import chess.board.Move;
 import chess.board.enums.PieceColor;
@@ -14,10 +15,10 @@ import java.util.List;
 
 public class SlidingPieceMoveGenerator {
 
-    private final Board board;
+    private final Bitboard bitBoard;
 
-    public SlidingPieceMoveGenerator(Board board) {
-        this.board = board;
+    public SlidingPieceMoveGenerator(Bitboard bitBoard) {
+        this.bitBoard = bitBoard;
     }
 
     /**
@@ -30,8 +31,8 @@ public class SlidingPieceMoveGenerator {
      */
     public List<Move> generateMovesForSlidingPiece(int square, PieceColor color, PieceType pieceType) {
         List<Move> moves = new ArrayList<>();
-        long ownOccupancies = board.getBitboard().getOccupancies(color);
-        long opponentOccupancies = board.getBitboard().getOccupancies(color.opposite());
+        long ownOccupancies = bitBoard.getOccupancies(color);
+        long opponentOccupancies = bitBoard.getOccupancies(color.opposite());
         int[] directionOffsets = getDirectionOffsets(pieceType);
 
         int startRow = square / 8;
@@ -40,7 +41,7 @@ public class SlidingPieceMoveGenerator {
         for (int offset : directionOffsets) {
             int toSquare = square + offset;
 
-            while (board.isWithinBoardBounds(toSquare)) {
+            while (toSquare >= 0 && toSquare < 64) {
                 int currentRow = toSquare / 8;
                 int currentCol = toSquare % 8;
 
@@ -62,7 +63,7 @@ public class SlidingPieceMoveGenerator {
                     break; // Blocked by own piece
                 }
 
-                PieceType capturedPieceType = board.getPieceTypeAtSquare(toSquare);
+                PieceType capturedPieceType = bitBoard.getPieceTypeAtSquare(toSquare);
                 moves.add(new Move(square, toSquare, pieceType, capturedPieceType, color));
 
                 if ((opponentOccupancies & toSquareBitboard) != 0) {
@@ -104,8 +105,8 @@ public class SlidingPieceMoveGenerator {
         List<Move> validMoves = generateMovesForSlidingPiece(fromSquare, color, pieceType);
 
         if (validMoves.contains(toSquare)) {
-            board.getBitboard().removePieceFromSquare(fromSquare, pieceType, color);
-            board.getBitboard().placePieceOnSquare(toSquare, pieceType, color);
+            bitBoard.removePieceFromSquare(fromSquare, pieceType, color);
+            bitBoard.placePieceOnSquare(toSquare, pieceType, color);
             //System.out.println("Move successful: " + pieceType + " moved from " + fromSquare + " to " + toSquare);
         } else {
             throw new IllegalMoveException("Invalid move: " + pieceType + " cannot move from " + fromSquare + " to " + toSquare);

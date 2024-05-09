@@ -27,6 +27,11 @@ public class Move {
         return "" + (char)('a' + file) + rank;
     }
 
+
+    public boolean isCapture(Board board) {
+        return board.getPieceTypeAtSquare(toSquare) != null;
+    }
+
     @Override
     public String toString() {
         return "Move{" +

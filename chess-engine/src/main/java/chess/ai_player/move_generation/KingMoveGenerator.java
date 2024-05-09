@@ -1,5 +1,6 @@
 package chess.ai_player.move_generation;
 
+import chess.board.Bitboard;
 import chess.board.Board;
 import chess.board.Move;
 import chess.board.enums.PieceColor;
@@ -13,10 +14,10 @@ import java.util.List;
 public class KingMoveGenerator {
 
 
-    private final Board board;
+    private final Bitboard bitboard;
 
-    public KingMoveGenerator(Board board) {
-        this.board = board;
+    public KingMoveGenerator(Bitboard board) {
+        this.bitboard = board;
     }
 
     /**
@@ -32,7 +33,7 @@ public class KingMoveGenerator {
     public List<Move> generateMovesForKing(int square, PieceColor color) {
         List<Move> moves = new ArrayList<>();
         long possibleMoves = PreComputationHandler.KING_ATTACKS[square];
-        long occupancies = board.getBitboard().getOccupancies(color);
+        long occupancies = bitboard.getOccupancies(color);
 
         //System.out.println("King Attacks Bitboard for " + square + ": " + Long.toBinaryString(possibleMoves));
         //System.out.println("Occupancies for " + color + ": " + Long.toBinaryString(occupancies));
@@ -43,7 +44,7 @@ public class KingMoveGenerator {
         // Iterate through the available moves using bitwise operations
         while (availableMoves != 0) {
             int toSquare = Long.numberOfTrailingZeros(availableMoves);
-            PieceType capturedPieceType = board.getPieceTypeAtSquare(toSquare);
+            PieceType capturedPieceType = bitboard.getPieceTypeAtSquare(toSquare);
             moves.add(new Move(square, toSquare, PieceType.KING, capturedPieceType, color));
             availableMoves &= availableMoves - 1; // Clear the least significant set bit
         }
@@ -70,8 +71,8 @@ public class KingMoveGenerator {
 
         if (validMoves.contains(toSquare)) {
             // Perform the move on the board
-            board.getBitboard().removePieceFromSquare(fromSquare, PieceType.KING, color);
-            board.getBitboard().placePieceOnSquare(toSquare, PieceType.KING, color);
+            bitboard.removePieceFromSquare(fromSquare, PieceType.KING, color);
+            bitboard.placePieceOnSquare(toSquare, PieceType.KING, color);
             //System.out.println("Move successful: King moved from " + fromSquare + " to " + toSquare);
         } else {
             // If the move is not valid, throw an exception detailing the issue
