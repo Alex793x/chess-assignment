@@ -3,6 +3,7 @@ package chess.engine.move_generation;
 
 import chess.board.Bitboard;
 import chess.board.Board;
+import chess.board.Move;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 import chess.exception.IllegalMoveException;
@@ -71,7 +72,7 @@ class SlidingPieceMoveGeneratorTest {
     @Test
     void testRookMovesOnEmptyBoard() {
         board.getBitboard().placePieceOnSquare(0, PieceType.ROOK, PieceColor.WHITE); // Place rook at a1
-        List<Integer> moves = generator.generateMovesForSlidingPiece(0, PieceColor.WHITE, PieceType.ROOK);
+        List<Move> moves = generator.generateMovesForSlidingPiece(0, PieceColor.WHITE, PieceType.ROOK);
         long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
         System.out.println("Rook Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.getRookAttacks(0, allOccupancies)));
@@ -92,7 +93,7 @@ class SlidingPieceMoveGeneratorTest {
         board.getBitboard().placePieceOnSquare(0, PieceType.ROOK, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(8, PieceType.PAWN, PieceColor.WHITE);
 
-        List<Integer> moves = generator.generateMovesForSlidingPiece(0, PieceColor.WHITE, PieceType.ROOK);
+        List<Move> moves = generator.generateMovesForSlidingPiece(0, PieceColor.WHITE, PieceType.ROOK);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
         System.out.println("Generated moves: " + moves);
@@ -112,7 +113,7 @@ class SlidingPieceMoveGeneratorTest {
     @Test
     void testRookPlacedInCorner() {
         board.getBitboard().placePieceOnSquare(0, PieceType.ROOK, PieceColor.WHITE);
-        List<Integer> moves = generator.generateMovesForSlidingPiece(0, PieceColor.WHITE, PieceType.ROOK);
+        List<Move> moves = generator.generateMovesForSlidingPiece(0, PieceColor.WHITE, PieceType.ROOK);
         long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
         System.out.println("Rook Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.getRookAttacks(0, allOccupancies)));
@@ -133,7 +134,7 @@ class SlidingPieceMoveGeneratorTest {
         board.getBitboard().placePieceOnSquare(1, PieceType.ROOK, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(25, PieceType.PAWN, PieceColor.BLACK);
 
-        List<Integer> moves = generator.generateMovesForSlidingPiece(1, PieceColor.WHITE, PieceType.ROOK);
+        List<Move> moves = generator.generateMovesForSlidingPiece(1, PieceColor.WHITE, PieceType.ROOK);
         long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
 
         System.out.println("Rook Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.getRookAttacks(1, allOccupancies)));

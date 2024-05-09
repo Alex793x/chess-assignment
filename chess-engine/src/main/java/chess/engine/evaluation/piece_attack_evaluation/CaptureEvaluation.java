@@ -1,6 +1,7 @@
 package chess.engine.evaluation.piece_attack_evaluation;
 
 import chess.board.Board;
+import chess.board.Move;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 import chess.engine.pre_computations.PreComputationHandler;
@@ -9,46 +10,14 @@ import java.util.Objects;
 
 public class CaptureEvaluation {
 
-    /**
-     * Performs a Static Exchange Evaluation (SEE) to determine the material gain or loss
-     * resulting from a series of captures on a single square.
-     *
-     * @param board the current chess board
-     * @param square the square where the capture sequence starts
-     * @param side the color of the side initiating the capture sequence
-     * @return the net material gain or loss for the side initiating the capture sequence
-     *
-     * The Static Exchange Evaluation (SEE) is a method used to evaluate the outcome of a
-     * series of captures on a single square. It recursively analyzes the consequences of
-     * a capture by considering the opponent's best recapture options.
-     *
-     * The algorithm works as follows:
-     * 1. Get the bitboard of all attackers on the specified square for the given side.
-     * 2. If there are no attackers, return 0 (no capture sequence).
-     * 3. Find the least valuable attacker using the {@link #getSmallestAttacker} method.
-     * 4. Remove the attacking piece from the board.
-     * 5. Calculate the value of the captured piece using its mid-game value.
-     * 6. Recursively evaluate the opponent's best recapture sequence by calling
-     *    {@link #staticExchangeEvaluation} with the opposite side.
-     * 7. The value of the capture sequence is the maximum of 0 and the difference between
-     *    the value of the captured piece and the opponent's best recapture sequence.
-     * 8. Undo the capture by placing the attacking piece back on the board.
-     * 9. Return the net material gain or loss for the side initiating the capture sequence.
-     *
-     * Note: This method modifies the board state during the evaluation process and restores
-     * it before returning. It should not be used directly to make moves on the board.
-     *
-     * The SEE value can be used to make informed decisions about capture moves during move
-     * generation and evaluation. A positive SEE value indicates a favorable capture sequence
-     * for the initiating side, while a negative value indicates a loss of material.
-     */
-    public static int staticExchangeEvaluation(Board board, int square, PieceColor side) {
+    public static int staticExchangeEvaluation(Board board, Move move, PieceColor side) {
         int netValue = 0;
+        int square = move.getToSquare();
         PieceColor opponentColor = side.opposite();
 
-        // If no opponent piece is present, return 0
-        if (board.getPieceColorAtSquare(square) == side) {
-            return 0;
+        // Verify if the move is a capturing move and the opponent piece is present
+        if (move.getCapturedPieceType() == null) {
+            return 0;  // No capturing move
         }
 
         long attackers = getAttackers(board, square, side);
@@ -60,14 +29,14 @@ public class CaptureEvaluation {
             }
 
             // Calculate the value of the opponent's piece at the square
-            int capturedValue = Objects.requireNonNull(board.getPieceTypeAtSquare(square)).getMidGameValue();
+            int capturedValue = move.getCapturedPieceType().getMidGameValue();
 
             // Simulate capture: remove the smallest attacker
             board.getBitboard().removePieceFromSquare(square, smallestAttacker, side);
             attackers = updateAttackers(board, square, side);
 
             // Recursively evaluate opponent's best recapture sequence
-            int counterValue = staticExchangeEvaluation(board, square, opponentColor);
+            int counterValue = staticExchangeEvaluation(board, new Move(square, square, smallestAttacker, null, opponentColor), opponentColor);
 
             // Undo the capture
             board.getBitboard().placePieceOnSquare(square, smallestAttacker, side);
@@ -87,7 +56,6 @@ public class CaptureEvaluation {
         // This method would recalculate all attackers after a change on the board.
         return getAttackers(board, square, side);
     }
-
 
     private static long getAttackers(Board board, int square, PieceColor side) {
         long occupancies = board.getBitboard().getOccupancies(side);

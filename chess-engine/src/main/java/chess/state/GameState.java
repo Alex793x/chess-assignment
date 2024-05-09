@@ -5,9 +5,11 @@ import chess.ai_player.move_generation.KnightMoveGenerator;
 import chess.ai_player.move_generation.PawnMoveGenerator;
 import chess.ai_player.move_generation.SlidingPieceMoveGenerator;
 import chess.board.Board;
+import chess.board.Move;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GameState {
@@ -25,8 +27,13 @@ public class GameState {
 
     public boolean isKingInCheck() {
         int kingPosition = board.getKingPosition(currentPlayer);
+        if (kingPosition == -1) {
+            System.err.println("King not found for " + currentPlayer);
+            return false;  // or handle appropriately
+        }
         return isKingPositionUnderAttack(kingPosition, currentPlayer.opposite());
     }
+
 
     public boolean isKingInCheckmate() {
         if (!isKingInCheck()) {
@@ -34,11 +41,11 @@ public class GameState {
         }
 
         int kingPosition = board.getKingPosition(currentPlayer);
-        List<Integer> possibleMoves = kingMoveGenerator.generateMovesForKing(kingPosition, currentPlayer);
+        List<Move> possibleMoves = kingMoveGenerator.generateMovesForKing(kingPosition, currentPlayer);
 
         // Check if there's any valid move where the king is not under attack
-        for (Integer move : possibleMoves) {
-            if (!isKingPositionUnderAttack(move, currentPlayer.opposite())) {
+        for (Move move : possibleMoves) {
+            if (!isKingPositionUnderAttack(move.getToSquare(), currentPlayer.opposite())) {
                 return false;
             }
         }
@@ -67,18 +74,22 @@ public class GameState {
             int fromSquare = Long.numberOfTrailingZeros(pieces);
             pieces &= ~(1L << fromSquare); // Clear the bit to move to the next piece
 
-            List<Integer> moves = switch (pieceType) {
+            List<Move> moves = switch (pieceType) {
                 case PAWN -> new PawnMoveGenerator(board).generateMovesForPawn(fromSquare, enemyColor);
                 case KNIGHT -> new KnightMoveGenerator(board).generateMovesForKnight(fromSquare, enemyColor);
                 default -> // For BISHOP, ROOK, QUEEN
                         new SlidingPieceMoveGenerator(board).generateMovesForSlidingPiece(fromSquare, enemyColor, pieceType);
             };
 
-            for (int move : moves) {
-                movesBitboard |= 1L << move;
+            for (Move move : moves) {
+                movesBitboard |= 1L << move.getToSquare();
             }
         }
 
         return movesBitboard;
     }
+
+
+
+
 }

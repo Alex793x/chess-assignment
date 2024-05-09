@@ -1,6 +1,7 @@
 package chess.ai_player.move_generation;
 
 import chess.board.Board;
+import chess.board.Move;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 import chess.exception.IllegalMoveException;
@@ -27,8 +28,8 @@ public class SlidingPieceMoveGenerator {
      * @param pieceType the type of the sliding piece (PieceType.ROOK, PieceType.BISHOP, PieceType.QUEEN).
      * @return a list of integers, each representing a valid destination square index.
      */
-    public List<Integer> generateMovesForSlidingPiece(int square, PieceColor color, PieceType pieceType) {
-        List<Integer> moves = new ArrayList<>();
+    public List<Move> generateMovesForSlidingPiece(int square, PieceColor color, PieceType pieceType) {
+        List<Move> moves = new ArrayList<>();
         long ownOccupancies = board.getBitboard().getOccupancies(color);
         long opponentOccupancies = board.getBitboard().getOccupancies(color.opposite());
         int[] directionOffsets = getDirectionOffsets(pieceType);
@@ -61,7 +62,8 @@ public class SlidingPieceMoveGenerator {
                     break; // Blocked by own piece
                 }
 
-                moves.add(toSquare); // Add as a valid move
+                PieceType capturedPieceType = board.getPieceTypeAtSquare(toSquare);
+                moves.add(new Move(square, toSquare, pieceType, capturedPieceType, color));
 
                 if ((opponentOccupancies & toSquareBitboard) != 0) {
                     break; // Capture possible, but cannot move further
@@ -70,6 +72,8 @@ public class SlidingPieceMoveGenerator {
                 toSquare += offset; // Move to the next square in the direction
             }
         }
+
+        //System.out.println("Generated moves for " + pieceType + " at square " + square + ": " + moves);
         return moves;
     }
 
@@ -97,12 +101,12 @@ public class SlidingPieceMoveGenerator {
      * @throws IllegalMoveException if the move is not valid.
      */
     public void moveSlidingPiece(int fromSquare, int toSquare, PieceColor color, PieceType pieceType) throws IllegalMoveException {
-        List<Integer> validMoves = generateMovesForSlidingPiece(fromSquare, color, pieceType);
+        List<Move> validMoves = generateMovesForSlidingPiece(fromSquare, color, pieceType);
 
         if (validMoves.contains(toSquare)) {
             board.getBitboard().removePieceFromSquare(fromSquare, pieceType, color);
             board.getBitboard().placePieceOnSquare(toSquare, pieceType, color);
-            System.out.println("Move successful: " + pieceType + " moved from " + fromSquare + " to " + toSquare);
+            //System.out.println("Move successful: " + pieceType + " moved from " + fromSquare + " to " + toSquare);
         } else {
             throw new IllegalMoveException("Invalid move: " + pieceType + " cannot move from " + fromSquare + " to " + toSquare);
         }

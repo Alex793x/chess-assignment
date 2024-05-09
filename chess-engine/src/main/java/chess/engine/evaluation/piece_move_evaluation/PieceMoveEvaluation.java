@@ -1,6 +1,7 @@
 package chess.engine.evaluation.piece_move_evaluation;
 
 import chess.board.Board;
+import chess.board.Move;
 import chess.board.MoveEvaluation;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
@@ -9,10 +10,11 @@ import chess.engine.evaluation.piece_mobility_evaluation.PieceMobilityEvaluation
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PieceMoveEvaluation {
 
-    public static List<Integer> evaluateAndOrderMoves(Board board, List<Integer> moves, PieceColor color) {
+    public static List<Move> evaluateAndOrderMoves(Board board, List<Move> moves, PieceColor color) {
         return moves.stream()
                 .map(move -> {
                     int staticExchangeScore = CaptureEvaluation.staticExchangeEvaluation(board, move, color);
@@ -22,26 +24,27 @@ public class PieceMoveEvaluation {
                 .sorted(Comparator.comparingInt(MoveEvaluation::getStaticExchangeScore).reversed()
                         .thenComparingInt(MoveEvaluation::getMobilityScore).reversed())
                 .map(MoveEvaluation::getMove)
-                .toList();
+                .collect(Collectors.toList());
     }
 
-
-    private static int evaluateMobilityScore(Board board, int square, PieceColor color) {
+    private static int evaluateMobilityScore(Board board, Move move, PieceColor color) {
         int mobilityScore = 0;
+        PieceType pieceType = move.getPieceType();
+        int toSquare = move.getToSquare();  // Assuming `toSquare` is the target location of the move.
 
-        // Evaluate mobility based on the piece type at the given square
-        PieceType pieceType = board.getPieceTypeAtSquare(square);
         if (pieceType != null) {
             mobilityScore = switch (pieceType) {
-                case PAWN -> PieceMobilityEvaluation.evaluatePawnMobilityForSquare(board, square, color);
+                case PAWN -> PieceMobilityEvaluation.evaluatePawnMobilityForSquare(board, toSquare, color);
                 case KNIGHT -> PieceMobilityEvaluation.evaluateKnightMobility(board, color);
                 case BISHOP -> PieceMobilityEvaluation.evaluateBishopMobility(board, color);
                 case ROOK -> PieceMobilityEvaluation.evaluateRookMobility(board, color);
                 case QUEEN -> PieceMobilityEvaluation.evaluateQueenMobility(board, color);
                 case KING -> PieceMobilityEvaluation.evaluateKingMobility(board, color);
+                default -> 0;
             };
         }
 
         return mobilityScore;
     }
 }
+

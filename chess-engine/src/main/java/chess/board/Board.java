@@ -5,8 +5,11 @@ import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 import chess.engine.move_validation.interfaces.PieceValidator;
 import chess.engine.move_validation.service.MoveValidator;
+import chess.state.GameState;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.List;
 
 @Data
 @EqualsAndHashCode
@@ -17,14 +20,25 @@ public final class Board {
     private boolean check;
     private boolean checkmate;
     private boolean isStalemate;
+    private GameState gameState;
 
     public Board() {
         this.bitboard = new Bitboard();
+        this.gameState = new GameState(this);
         this.currentPlayer = PieceColor.WHITE;
-        this.check = false;
-        this.checkmate = false;
+        this.check = gameState.isKingInCheck();
+        this.checkmate = gameState.isKingInCheckmate();
         initializeBoard();
     }
+
+    public Board(Board original) {
+        this.bitboard = new Bitboard(original.getBitboard());  // Assumes Bitboard has a copy constructor
+        this.currentPlayer = original.currentPlayer;
+        this.check = gameState.isKingInCheck();
+        this.checkmate = gameState.isKingInCheckmate();
+        this.isStalemate = original.isStalemate;
+    }
+
 
     /**
      * The initialization of the boards ensures each position of
@@ -163,6 +177,39 @@ public final class Board {
         };
     }
 
+    public void makeMove(Move move) {
+        // Remove the piece from its current location
+        bitboard.removePieceFromSquare(move.getFromSquare(), move.getPieceType(), move.getPieceColor());
+
+        // If a capture occurs, remove the captured piece from the target square
+        if (move.getCapturedPieceType() != null) {
+            bitboard.removePieceFromSquare(move.getToSquare(), move.getCapturedPieceType(), currentPlayer.opposite());
+        }
+
+        // Place the piece on the new square
+        bitboard.placePieceOnSquare(move.getToSquare(), move.getPieceType(), move.getPieceColor());
+
+        // Update game state after the move
+        currentPlayer = currentPlayer.opposite();
+        updateGameState(currentPlayer, gameState.isKingInCheck(), gameState.isKingInCheckmate());
+    }
+
+    public void undoMove(Move move) {
+        // Move the piece back to its original position
+        bitboard.removePieceFromSquare(move.getToSquare(), move.getPieceType(), move.getPieceColor());
+        bitboard.placePieceOnSquare(move.getFromSquare(), move.getPieceType(), move.getPieceColor());
+
+        // If a capture occurred, restore the captured piece to the board
+        if (move.getCapturedPieceType() != null) {
+            bitboard.placePieceOnSquare(move.getToSquare(), move.getCapturedPieceType(), currentPlayer.opposite());
+        }
+
+        // Revert the player turn
+        currentPlayer = currentPlayer.opposite();
+        updateGameState(currentPlayer, gameState.isKingInCheck(), gameState.isKingInCheckmate());
+    }
+
+
 
 
 
@@ -192,13 +239,16 @@ public final class Board {
 
 
     public int getKingPosition(PieceColor color) {
-        long kingBitboard = (color == PieceColor.WHITE) ? bitboard.getWhiteKing() : bitboard.getBlackKing();
+        long kingBitboard = (color == PieceColor.WHITE) ? getPieceBitboard(PieceType.KING, PieceColor.WHITE) : getPieceBitboard(PieceType.KING, PieceColor.BLACK);
         if (kingBitboard == 0) {
-            System.err.println("No king found for " + color);
+            System.err.println("No king found for " + color + ". Bitboard is zero.");
             return -1; // or handle it another way that suits your application
         }
-        return Long.numberOfTrailingZeros(kingBitboard);
+        int position = Long.numberOfTrailingZeros(kingBitboard);
+        //System.out.println("King for " + color + " found at position " + position);
+        return position;
     }
+
 
 
     private int bitboardIndex(long bitboard) {
@@ -212,4 +262,9 @@ public final class Board {
         }
         return index;
     }
+
+    public boolean isGameOver() {
+        return checkmate || isStalemate;
+    }
+
 }

@@ -2,6 +2,7 @@
 package chess.ai_player.move_generation;
 
 import chess.board.Board;
+import chess.board.Move;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 import chess.exception.IllegalMoveException;
@@ -26,8 +27,8 @@ public class KnightMoveGenerator {
      * @param color  the color of the knight (PieceColor.WHITE or PieceColor.BLACK).
      * @return a list of integers, each representing a valid destination square index.
      */
-    public List<Integer> generateMovesForKnight(int square, PieceColor color) {
-        List<Integer> moves = new ArrayList<>();
+    public List<Move> generateMovesForKnight(int square, PieceColor color) {
+        List<Move> moves = new ArrayList<>();
         long possibleMoves = PreComputationHandler.KNIGHT_ATTACKS[square];
         long ownPieces = board.getBitboard().getOccupancies(color);
 
@@ -37,10 +38,12 @@ public class KnightMoveGenerator {
         // Iterate through the available moves using bitwise operations
         while (availableMoves != 0) {
             int toSquare = Long.numberOfTrailingZeros(availableMoves);
-            moves.add(toSquare);
+            PieceType capturedPieceType = board.getPieceTypeAtSquare(toSquare);
+            moves.add(new Move(square, toSquare, PieceType.KNIGHT, capturedPieceType, color));
             availableMoves &= availableMoves - 1; // Clear the least significant set bit
         }
 
+        //System.out.println("Generated knight moves: " + moves.toString());
         return moves;
     }
 
@@ -59,11 +62,11 @@ public class KnightMoveGenerator {
      * @throws IllegalMoveException if the move is not valid, with a message explaining why.
      */
     public void moveKnight(int fromSquare, int toSquare, PieceColor color) throws IllegalMoveException {
-        List<Integer> validMoves = generateMovesForKnight(fromSquare, color);
+        List<Move> validMoves = generateMovesForKnight(fromSquare, color);
         if (validMoves.contains(toSquare)) {
             board.getBitboard().removePieceFromSquare(fromSquare, PieceType.KNIGHT, color);
             board.getBitboard().placePieceOnSquare(toSquare, PieceType.KNIGHT, color);
-            System.out.println("Move successful: Knight moved from " + fromSquare + " to " + toSquare);
+            //System.out.println("Move successful: Knight moved from " + fromSquare + " to " + toSquare);
         } else {
             throw new IllegalMoveException("Invalid move: Knight cannot move from " + fromSquare + " to " + toSquare);
         }

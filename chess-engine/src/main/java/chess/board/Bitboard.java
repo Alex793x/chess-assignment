@@ -50,6 +50,21 @@ public class Bitboard {
         blackKing = blackQueens = blackRooks = blackBishops = blackKnights = blackPawns = 0L;
     }
 
+    public Bitboard(Bitboard original) {
+        this.whiteKing = original.whiteKing;
+        this.whiteQueens = original.whiteQueens;
+        this.whiteRooks = original.whiteRooks;
+        this.whiteBishops = original.whiteBishops;
+        this.whiteKnights = original.whiteKnights;
+        this.whitePawns = original.whitePawns;
+        this.blackKing = original.blackKing;
+        this.blackQueens = original.blackQueens;
+        this.blackRooks = original.blackRooks;
+        this.blackBishops = original.blackBishops;
+        this.blackKnights = original.blackKnights;
+        this.blackPawns = original.blackPawns;
+    }
+
     public void readFEN_String(String fen) {
         String[] parts = fen.split(" ");
         String[] ranks = parts[0].split("/");
@@ -251,6 +266,7 @@ public class Bitboard {
      * @throws IllegalArgumentException if the piece type is invalid.
      */
     public long getBitboardForPieceTypeAndColor(PieceType pieceType, PieceColor pieceColor) {
+        if (pieceType == null) return 0L;
         return switch (pieceType) {
             case KING -> pieceColor == PieceColor.WHITE ? whiteKing : blackKing;
             case QUEEN -> pieceColor == PieceColor.WHITE ? whiteQueens : blackQueens;
@@ -271,6 +287,7 @@ public class Bitboard {
      * @throws IllegalArgumentException if the piece type is invalid.
      */
     private void setBitboardForPieceTypeAndColor(PieceType pieceType, PieceColor pieceColor, long bitboard) {
+        if (pieceType == null) return;
         switch (pieceType) {
             case KING:   if (pieceColor == PieceColor.WHITE) whiteKing = bitboard; else blackKing = bitboard; break;
             case QUEEN:  if (pieceColor == PieceColor.WHITE) whiteQueens = bitboard; else blackQueens = bitboard; break;
@@ -290,4 +307,10 @@ public class Bitboard {
     }
 
 
+    public long getBitboardForColor(PieceColor currentPlayer) {
+        return switch (currentPlayer) {
+            case WHITE -> whiteKing | whiteQueens | whiteRooks | whiteBishops | whiteKnights | whitePawns;
+            case BLACK -> blackKing | blackQueens | blackRooks | blackBishops | blackKnights | blackPawns;
+        };
+    }
 }

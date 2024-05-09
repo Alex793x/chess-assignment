@@ -31,12 +31,12 @@ public final class PieceMobilityEvaluation {
         mobilityScore += kingMobility;
 
         // Log the mobility scores for each piece type
-        System.out.println(color + " Pawn Mobility: " + pawnMobility);
-        System.out.println(color + " Knight Mobility: " + knightMobility);
-        System.out.println(color + " Bishop Mobility: " + bishopMobility);
-        System.out.println(color + " Rook Mobility: " + rookMobility);
-        System.out.println(color + " Queen Mobility: " + queenMobility);
-        System.out.println(color + " King Mobility: " + kingMobility);
+        //System.out.println(color + " Pawn Mobility: " + pawnMobility);
+        //System.out.println(color + " Knight Mobility: " + knightMobility);
+        //System.out.println(color + " Bishop Mobility: " + bishopMobility);
+        //System.out.println(color + " Rook Mobility: " + rookMobility);
+        //System.out.println(color + " Queen Mobility: " + queenMobility);
+        //System.out.println(color + " King Mobility: " + kingMobility);
 
         return mobilityScore;
     }

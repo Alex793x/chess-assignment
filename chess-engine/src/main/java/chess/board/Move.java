@@ -20,4 +20,23 @@ public class Move {
         this.capturedPieceType = capturedPieceType;
         this.pieceColor = pieceColor;
     }
+
+    public static String squareToNotation(int square) {
+        int file = square % 8;
+        int rank = square / 8 + 1;
+        return "" + (char)('a' + file) + rank;
+    }
+
+    @Override
+    public String toString() {
+        return "Move{" +
+                "fromSquare=" + fromSquare +
+                ", toSquare=" + toSquare +
+                ", pieceType=" + pieceType +
+                ", capturedPieceType=" + capturedPieceType +
+                ", pieceColor=" + pieceColor +
+                '}';
+    }
+
+
 }

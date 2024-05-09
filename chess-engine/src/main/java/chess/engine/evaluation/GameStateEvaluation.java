@@ -16,11 +16,11 @@ public final class GameStateEvaluation {
         int moveAbilityScore = rateMoveAbilityPosition(board);
         int attackScore = rateAttackingPosition(board);
 
-        System.out.println("MATERIAL AND BOARD POSITION SCORE: ---- " + materialAndBoardPositionScore);
-        System.out.println("MOVEABILITY POSITION SCORE: ---- " + moveAbilityScore);
-        System.out.println("ATTACK POSITION SCORE: ---- " + attackScore);
+        //System.out.println("MATERIAL AND BOARD POSITION SCORE: ---- " + materialAndBoardPositionScore);
+        //System.out.println("MOVEABILITY POSITION SCORE: ---- " + moveAbilityScore);
+        //System.out.println("ATTACK POSITION SCORE: ---- " + attackScore);
 
-        System.out.println("TOTAL SCORE: ---- " + (materialAndBoardPositionScore + moveAbilityScore + attackScore));
+        //System.out.println("TOTAL SCORE: ---- " + (materialAndBoardPositionScore + moveAbilityScore + attackScore));
 
         return materialAndBoardPositionScore + moveAbilityScore;
     }
@@ -81,7 +81,7 @@ public final class GameStateEvaluation {
             allPiecesBitboardForOneSide &= allPiecesBitboardForOneSide - 1;
         }
 
-        System.out.println("TOTAL SCORE FOR " + side + ": ---- " + accumulatedScore);
+        //System.out.println("TOTAL SCORE FOR " + side + ": ---- " + accumulatedScore);
         return accumulatedScore;
     }
 
