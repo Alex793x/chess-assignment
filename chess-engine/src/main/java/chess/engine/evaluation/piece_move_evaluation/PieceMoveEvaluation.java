@@ -19,18 +19,30 @@ public class PieceMoveEvaluation {
                 .map(move -> {
                     int staticExchangeScore = CaptureEvaluation.staticExchangeEvaluation(board, move, color);
                     int mobilityScore = evaluateMobilityScore(board, move, color);
-                    return new MoveEvaluation(move, staticExchangeScore, mobilityScore);
+                    int moveTypeScore = 0;
+
+                    if (move.getCapturedPieceType() != null) {
+                        // Increase score for captures based on the piece value
+                        moveTypeScore += 30 + move.getCapturedPieceType().getMidGameValue();
+                    } else {
+                        // Standard move score
+                        moveTypeScore += 20;
+                    }
+
+                    int combinedScore = staticExchangeScore + mobilityScore + moveTypeScore;
+                    return new MoveEvaluation(move, staticExchangeScore, mobilityScore, combinedScore);
                 })
-                .sorted(Comparator.comparingInt(MoveEvaluation::getStaticExchangeScore).reversed()
-                        .thenComparingInt(MoveEvaluation::getMobilityScore).reversed())
+                .sorted(Comparator.comparingInt(MoveEvaluation::getCombinedScore).reversed())
                 .map(MoveEvaluation::getMove)
                 .collect(Collectors.toList());
     }
 
+
+
     private static int evaluateMobilityScore(Board board, Move move, PieceColor color) {
         int mobilityScore = 0;
         PieceType pieceType = move.getPieceType();
-        int toSquare = move.getToSquare();  // Assuming `toSquare` is the target location of the move.
+        int toSquare = move.getToSquare();
 
         if (pieceType != null) {
             mobilityScore = switch (pieceType) {
@@ -40,7 +52,6 @@ public class PieceMoveEvaluation {
                 case ROOK -> PieceMobilityEvaluation.evaluateRookMobility(board, color);
                 case QUEEN -> PieceMobilityEvaluation.evaluateQueenMobility(board, color);
                 case KING -> PieceMobilityEvaluation.evaluateKingMobility(board, color);
-                default -> 0;
             };
         }
 

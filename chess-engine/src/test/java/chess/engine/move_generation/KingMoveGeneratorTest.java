@@ -24,7 +24,7 @@ class KingMoveGeneratorTest {
     @BeforeEach
     void setUp() {
         board = new Board();
-        kingMoveGenerator = new KingMoveGenerator(board);
+        kingMoveGenerator = new KingMoveGenerator(board.getBitboard());
         clearBoard();
     }
 

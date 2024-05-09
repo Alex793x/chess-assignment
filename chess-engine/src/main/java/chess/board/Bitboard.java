@@ -65,7 +65,7 @@ public class Bitboard {
         this.blackPawns = original.blackPawns;
     }
 
-    public void readFEN_String(String fen) {
+    public void readFEN_String(String fen, Board board) {
         String[] parts = fen.split(" ");
         String[] ranks = parts[0].split("/");
 
@@ -88,7 +88,16 @@ public class Bitboard {
                 }
             }
         }
+
+        // Handle the active color (turn)
+        if (parts.length > 1) {
+            String activeColor = parts[1];
+            board.setCurrentPlayer(activeColor.equals("b")
+                    ? PieceColor.BLACK
+                    : PieceColor.WHITE);
+        }
     }
+
 
 
     /**

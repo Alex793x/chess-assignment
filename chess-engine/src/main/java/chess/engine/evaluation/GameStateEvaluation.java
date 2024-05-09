@@ -11,22 +11,9 @@ import chess.engine.evaluation.piece_mobility_evaluation.PieceMobilityEvaluation
 public final class GameStateEvaluation {
 
     public static int FullGameStateEvaluation(Board board) {
-        // Full heuristic estimating score logic
         int materialAndBoardPositionScore = rateMaterialAndBoardPositionScore(board);
         int moveAbilityScore = rateMoveAbilityPosition(board);
-        int attackScore = rateAttackingPosition(board);
-
-        //System.out.println("MATERIAL AND BOARD POSITION SCORE: ---- " + materialAndBoardPositionScore);
-        //System.out.println("MOVEABILITY POSITION SCORE: ---- " + moveAbilityScore);
-        //System.out.println("ATTACK POSITION SCORE: ---- " + attackScore);
-
-        //System.out.println("TOTAL SCORE: ---- " + (materialAndBoardPositionScore + moveAbilityScore + attackScore));
-
         return materialAndBoardPositionScore + moveAbilityScore;
-    }
-
-    public static int rateAttackingPosition(Board board) {
-        return 0;
     }
 
 

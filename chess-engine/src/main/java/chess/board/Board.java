@@ -9,8 +9,6 @@ import chess.state.GameState;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.List;
-
 @Data
 @EqualsAndHashCode
 public final class Board {
@@ -120,58 +118,6 @@ public final class Board {
 
     }
 
-    public Board copy() {
-        Board boardCopy = new Board();
-
-        // Copy the current player
-        boardCopy.setCurrentPlayer(this.getCurrentPlayer());
-
-        // Copy the bitboards
-        boardCopy.getBitboard().setWhitePawns(this.getBitboard().getWhitePawns());
-        boardCopy.getBitboard().setWhiteKnights(this.getBitboard().getWhiteKnights());
-        boardCopy.getBitboard().setWhiteBishops(this.getBitboard().getWhiteBishops());
-        boardCopy.getBitboard().setWhiteRooks(this.getBitboard().getWhiteRooks());
-        boardCopy.getBitboard().setWhiteQueens(this.getBitboard().getWhiteQueens());
-        boardCopy.getBitboard().setWhiteKing(this.getBitboard().getWhiteKing());
-
-        boardCopy.getBitboard().setBlackPawns(this.getBitboard().getBlackPawns());
-        boardCopy.getBitboard().setBlackKnights(this.getBitboard().getBlackKnights());
-        boardCopy.getBitboard().setBlackBishops(this.getBitboard().getBlackBishops());
-        boardCopy.getBitboard().setBlackRooks(this.getBitboard().getBlackRooks());
-        boardCopy.getBitboard().setBlackQueens(this.getBitboard().getBlackQueens());
-        boardCopy.getBitboard().setBlackKing(this.getBitboard().getBlackKing());
-        boardCopy.setCheck(this.check);
-        boardCopy.setCheckmate(this.checkmate);
-        boardCopy.setStalemate(this.isStalemate);
-        boardCopy.setGameState(this.gameState);
-
-        return boardCopy;
-    }
-
-
-    public void movePiece(int fromSquare, int toSquare) {
-        if (!PieceValidator.isWithinBoardBounds(toSquare)) return;
-        PieceType pieceType = getPieceTypeAtSquare(fromSquare);
-        PieceColor pieceColor = getPieceColorAtSquare(fromSquare);
-
-        // Validate Move Actions
-        if (pieceType == PieceType.PAWN && !MoveValidator.validatePawnMoves(this, fromSquare, toSquare, pieceColor))
-            return;
-        if (pieceType == PieceType.KNIGHT && !MoveValidator.validateKnightMoves(this, fromSquare, toSquare, pieceColor))
-            return;
-        if (pieceType == PieceType.BISHOP && !MoveValidator.validateBishopMoves(this, fromSquare, toSquare, pieceColor))
-            return;
-        if (pieceType == PieceType.ROOK && !MoveValidator.validateRookMoves(this, fromSquare, toSquare, pieceColor))
-            return;
-        if (pieceType == PieceType.QUEEN && !MoveValidator.validateQueenMoves(this, fromSquare, toSquare, pieceColor))
-            return;
-        if (pieceType == PieceType.KING && !MoveValidator.validateKingMoves(this, fromSquare, toSquare, pieceColor))
-            return;
-
-        bitboard.removePieceFromSquare(fromSquare, pieceType, pieceColor);
-        bitboard.placePieceOnSquare(toSquare, pieceType, pieceColor);
-    }
-
     public PieceType getPieceTypeAtSquare(int square) {
         for (PieceColor color : PieceColor.values()) {
             for (PieceType type : PieceType.values()) {
@@ -218,8 +164,6 @@ public final class Board {
         // Place the piece on the new square
         bitboard.placePieceOnSquare(move.getToSquare(), move.getPieceType(), move.getPieceColor());
 
-        // Update game state after the move
-        currentPlayer = currentPlayer.opposite();
         updateGameState(currentPlayer, gameState.isKingInCheck(), gameState.isKingInCheckmate());
     }
 
@@ -234,8 +178,36 @@ public final class Board {
         }
 
         // Revert the player turn
-        currentPlayer = currentPlayer.opposite();
         updateGameState(currentPlayer, gameState.isKingInCheck(), gameState.isKingInCheckmate());
+    }
+
+
+    public Board copy() {
+        Board boardCopy = new Board();
+
+        // Copy the current player
+        boardCopy.setCurrentPlayer(this.getCurrentPlayer());
+
+        // Copy the bitboards
+        boardCopy.getBitboard().setWhitePawns(this.getBitboard().getWhitePawns());
+        boardCopy.getBitboard().setWhiteKnights(this.getBitboard().getWhiteKnights());
+        boardCopy.getBitboard().setWhiteBishops(this.getBitboard().getWhiteBishops());
+        boardCopy.getBitboard().setWhiteRooks(this.getBitboard().getWhiteRooks());
+        boardCopy.getBitboard().setWhiteQueens(this.getBitboard().getWhiteQueens());
+        boardCopy.getBitboard().setWhiteKing(this.getBitboard().getWhiteKing());
+
+        boardCopy.getBitboard().setBlackPawns(this.getBitboard().getBlackPawns());
+        boardCopy.getBitboard().setBlackKnights(this.getBitboard().getBlackKnights());
+        boardCopy.getBitboard().setBlackBishops(this.getBitboard().getBlackBishops());
+        boardCopy.getBitboard().setBlackRooks(this.getBitboard().getBlackRooks());
+        boardCopy.getBitboard().setBlackQueens(this.getBitboard().getBlackQueens());
+        boardCopy.getBitboard().setBlackKing(this.getBitboard().getBlackKing());
+        boardCopy.setCheck(this.check);
+        boardCopy.setCheckmate(this.checkmate);
+        boardCopy.setStalemate(this.isStalemate);
+        boardCopy.setGameState(this.gameState);
+
+        return boardCopy;
     }
 
 
@@ -253,35 +225,16 @@ public final class Board {
     }
 
 
-    public boolean isSquareOccupiedByEnemy(int square, long enemyOccupancies) {
-        return (enemyOccupancies & (1L << square)) != 0;
-    }
-
-
-
     public int getKingPosition(PieceColor color) {
         long kingBitboard = (color == PieceColor.WHITE) ? getPieceBitboard(PieceType.KING, PieceColor.WHITE) : getPieceBitboard(PieceType.KING, PieceColor.BLACK);
         if (kingBitboard == 0) {
             System.err.println("No king found for " + color + ". Bitboard is zero.");
-            return -1; // or handle it another way that suits your application
+            return -1;
         }
-        //System.out.println("King for " + color + " found at position " + position);
+        System.out.println("King for " + color + " found at position " + Long.numberOfTrailingZeros(kingBitboard));
         return Long.numberOfTrailingZeros(kingBitboard);
     }
 
-
-
-    private int bitboardIndex(long bitboard) {
-        if (bitboard == 0) {
-            return -1; // No pieces of this type on the board
-        }
-        int index = 0;
-        while ((bitboard & 1) == 0) {
-            bitboard >>>= 1;
-            index++;
-        }
-        return index;
-    }
 
     public GameStateData getGameStateData() {
         return new GameStateData(currentPlayer, bitboard, getKingPosition(currentPlayer));
@@ -290,5 +243,28 @@ public final class Board {
     public boolean isGameOver() {
         return checkmate || isStalemate;
     }
+
+    public long getHash() {
+        long hash = 0L;
+        // XOR all bitboards to combine their hashes
+        hash ^= bitboard.getWhitePawns();
+        hash ^= bitboard.getWhiteKnights();
+        hash ^= bitboard.getWhiteBishops();
+        hash ^= bitboard.getWhiteRooks();
+        hash ^= bitboard.getWhiteQueens();
+        hash ^= bitboard.getWhiteKing();
+        hash ^= bitboard.getBlackPawns();
+        hash ^= bitboard.getBlackKnights();
+        hash ^= bitboard.getBlackBishops();
+        hash ^= bitboard.getBlackRooks();
+        hash ^= bitboard.getBlackQueens();
+        hash ^= bitboard.getBlackKing();
+
+        // Optionally, include the current player to move in the hash
+        hash ^= currentPlayer == PieceColor.WHITE ? 0 : 1;
+
+        return hash;
+    }
+
 
 }
