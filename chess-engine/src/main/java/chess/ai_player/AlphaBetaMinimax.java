@@ -150,12 +150,11 @@ public class AlphaBetaMinimax {
     public static void main(String[] args) {
         // Initialize the board
         Board board = new Board();
-        board.getBitboard().readFEN_String("rnb1kbnr/pppp1ppp/4p3/6q1/4P3/2N2N2/PPPP1PPP/R1BQKB1R b KQkq - 3 3", board);
-        AlphaBetaMinimax alphaBetaMinimax = new AlphaBetaMinimax(board, 7);
+        board.getBitboard().readFEN_String("rnbq1rk1/4bppp/2p1pn2/p7/1p2p3/1B4NN/PPPP1PPP/R1BQR1K1 w - a6 0 11", board);
+        AlphaBetaMinimax alphaBetaMinimax = new AlphaBetaMinimax(board, 6);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
         Move bestMove = alphaBetaMinimax.findBestMove();
         System.out.println("Best move: " + bestMove);
     }
-
 
 }

@@ -46,7 +46,7 @@ class BitboardTest {
     @Test
     void testReadFENString() {
         String fen = "r1bqk1nr/ppp2ppp/2n5/4b3/8/8/PPP1PPPP/RNB1KBNR w KQkq - 0 6"; // Custom FEN for this board setup
-        newBoard.getBitboard().readFEN_String(fen);
+        newBoard.getBitboard().readFEN_String(fen, newBoard);
 
         System.out.println("whiteboard rating is: " + whiteScoreBoardPosition(newBoard));
         System.out.println("blackboard rating is: " + blackScoreBoardPosition(newBoard));
@@ -71,7 +71,7 @@ class BitboardTest {
     @Test
     void testConvertBitboardToFEN() {
         String fen = "2n5/5pn1/P2P1bP1/pk1PN2r/q3rPPB/p2P1NQ1/BP3K2/q2b4 w - - 0 1"; // Custom FEN for this board setup
-        newBoard.getBitboard().readFEN_String(fen);
+        newBoard.getBitboard().readFEN_String(fen, newBoard);
         System.out.println("BOARD STATE READ FROM FEN");
         System.out.println(newBoard.getBitboard().convertBitboardToBinaryString());
 

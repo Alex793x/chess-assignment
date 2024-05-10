@@ -17,7 +17,7 @@ public class WhiteMaterialGameStateEvaluationTest {
     void createCleanBoard() {
         newBoard = new Board();
         String fen = "rn2kb1r/pp2pp1p/3p2p1/2pP1b2/8/qP1P4/P1QBPPPP/R3KBNR w KQkq - 0 9"; // Custom FEN for this board setup
-        newBoard.getBitboard().readFEN_String(fen);
+        newBoard.getBitboard().readFEN_String(fen, newBoard);
 
         System.out.println(newBoard.getBitboard().convertBitboardToBinaryString());
 

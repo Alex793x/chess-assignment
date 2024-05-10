@@ -3,6 +3,7 @@ package chess.engine.move_generation;
 import chess.ai_player.move_generation.KnightMoveGenerator;
 import chess.board.Bitboard;
 import chess.board.Board;
+import chess.board.Move;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 import chess.exception.IllegalMoveException;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,7 +25,7 @@ class KnightMoveGeneratorTest {
     @BeforeEach
     void setUp() {
         board = new Board();
-        knightMoveGenerator = new KnightMoveGenerator(board);
+        knightMoveGenerator = new KnightMoveGenerator(board.getBitboard());
         clearBoard();
     }
 
@@ -46,10 +48,9 @@ class KnightMoveGeneratorTest {
 
     @Test
     void testKnightMovesFromCenter() {
-
         board.getBitboard().placePieceOnSquare(27, PieceType.KNIGHT, PieceColor.WHITE);
-        List<Integer> moves = knightMoveGenerator.generateMovesForKnight(27, PieceColor.WHITE);
-        System.out.println("Knight Attacks Bitboard for 27: " + Long.toBinaryString(PreComputationHandler.KING_ATTACKS[27]));
+        List<Move> moves = knightMoveGenerator.generateMovesForKnight(27, PieceColor.WHITE);
+
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
@@ -57,7 +58,8 @@ class KnightMoveGeneratorTest {
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
         assertEquals(8, moves.size(), "Knight on d4 should have 8 possible moves.");
-        assertTrue(moves.containsAll(Arrays.asList(10, 12, 17, 21, 33, 37, 42, 44)), "Knight should move to all valid L-shape positions from d4.");
+        List<Integer> expectedMoves = Arrays.asList(10, 12, 17, 21, 33, 37, 42, 44);
+        assertTrue(moves.stream().map(Move::getToSquare).toList().containsAll(expectedMoves), "Knight should move to all valid L-shape positions from d4.");
     }
 
 
@@ -65,7 +67,7 @@ class KnightMoveGeneratorTest {
     void testKnightMovesFromEdge() {
 
         board.getBitboard().placePieceOnSquare(0, PieceType.KNIGHT, PieceColor.WHITE);
-        List<Integer> moves = knightMoveGenerator.generateMovesForKnight(0, PieceColor.WHITE);
+        List<Move> moves = knightMoveGenerator.generateMovesForKnight(0, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
         System.out.println("Knight Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.KING_ATTACKS[0]));
@@ -88,7 +90,7 @@ class KnightMoveGeneratorTest {
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
-        List<Integer> moves = knightMoveGenerator.generateMovesForKnight(36, PieceColor.WHITE);
+        List<Move> moves = knightMoveGenerator.generateMovesForKnight(36, PieceColor.WHITE);
 
 
         System.out.println("Knight Attacks Bitboard for 0: " + Long.toBinaryString(PreComputationHandler.KING_ATTACKS[36]));
@@ -125,7 +127,7 @@ class KnightMoveGeneratorTest {
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
-        List<Integer> moves = knightMoveGenerator.generateMovesForKnight(27, PieceColor.WHITE);
+        List<Move> moves = knightMoveGenerator.generateMovesForKnight(27, PieceColor.WHITE);
 
         knightMoveGenerator.moveKnight(27, 10, PieceColor.WHITE);
 

@@ -212,8 +212,6 @@ public final class Board {
 
 
 
-
-
     public void updateGameState(PieceColor nextPlayer, boolean isCheck, boolean isCheckmate) {
         this.currentPlayer = nextPlayer;
         this.check = isCheck;

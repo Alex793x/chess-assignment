@@ -3,6 +3,7 @@ package chess.engine.move_generation;
 import chess.ai_player.move_generation.KingMoveGenerator;
 import chess.board.Bitboard;
 import chess.board.Board;
+import chess.board.Move;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 import chess.exception.IllegalMoveException;
@@ -50,7 +51,7 @@ class KingMoveGeneratorTest {
     void testKingMovesCenter() {
 
         board.getBitboard().placePieceOnSquare(27, PieceType.KING, PieceColor.WHITE);
-        List<Integer> moves = kingMoveGenerator.generateMovesForKing(27, PieceColor.WHITE);
+        List<Move> moves = kingMoveGenerator.generateMovesForKing(27, PieceColor.WHITE);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
         assertEquals(8, moves.size(), "King on d4 should have 8 possible moves.");
@@ -68,7 +69,7 @@ class KingMoveGeneratorTest {
     @Test
     void testKingMovesE1() {
         board.getBitboard().placePieceOnSquare(4, PieceType.KING, PieceColor.WHITE);
-        List<Integer> moves = kingMoveGenerator.generateMovesForKing(4, PieceColor.WHITE);
+        List<Move> moves = kingMoveGenerator.generateMovesForKing(4, PieceColor.WHITE);
         System.out.println("King Attacks Bitboard for 4: " + Long.toBinaryString(PreComputationHandler.KING_ATTACKS[4]));
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -80,7 +81,7 @@ class KingMoveGeneratorTest {
     @Test
     void testKingMovesH1() {
         board.getBitboard().placePieceOnSquare(7, PieceType.KING, PieceColor.WHITE);
-        List<Integer> moves = kingMoveGenerator.generateMovesForKing(7, PieceColor.WHITE);
+        List<Move> moves = kingMoveGenerator.generateMovesForKing(7, PieceColor.WHITE);
         System.out.println("King Attacks Bitboard for 7: " + Long.toBinaryString(PreComputationHandler.KING_ATTACKS[7]));
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -94,7 +95,7 @@ class KingMoveGeneratorTest {
     void testKingMovesG1WithRookAtH1() {
         board.getBitboard().placePieceOnSquare(6, PieceType.KING, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(7, PieceType.ROOK, PieceColor.WHITE);
-        List<Integer> moves = kingMoveGenerator.generateMovesForKing(6, PieceColor.WHITE);
+        List<Move> moves = kingMoveGenerator.generateMovesForKing(6, PieceColor.WHITE);
         System.out.println("King Attacks Bitboard for 6: " + Long.toBinaryString(PreComputationHandler.KING_ATTACKS[6]));
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
@@ -107,7 +108,7 @@ class KingMoveGeneratorTest {
     void testKingMovesG1WithEnemyRookAtH1() {
         board.getBitboard().placePieceOnSquare(6, PieceType.KING, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(7, PieceType.ROOK, PieceColor.BLACK);
-        List<Integer> moves = kingMoveGenerator.generateMovesForKing(6, PieceColor.WHITE);
+        List<Move> moves = kingMoveGenerator.generateMovesForKing(6, PieceColor.WHITE);
         System.out.println("King Attacks Bitboard for 6: " + Long.toBinaryString(PreComputationHandler.KING_ATTACKS[6]));
         System.out.println("Generated moves: " + moves);
         System.out.println(board.getBitboard().convertBitboardToBinaryString());

@@ -3,6 +3,7 @@ package chess.engine.move_generation;
 import chess.ai_player.move_generation.PawnMoveGenerator;
 import chess.board.Bitboard;
 import chess.board.Board;
+import chess.board.Move;
 import chess.board.enums.PieceColor;
 import chess.board.enums.PieceType;
 import chess.exception.IllegalMoveException;
@@ -22,7 +23,7 @@ class PawnMoveGeneratorTest {
     @BeforeEach
     void setUp() {
         board = new Board();
-        pawnMoveGenerator = new PawnMoveGenerator(board);
+        pawnMoveGenerator = new PawnMoveGenerator(board.getBitboard());
         clearBoard();
     }
 
@@ -47,7 +48,7 @@ class PawnMoveGeneratorTest {
     void testPawnSingleForwardMove() throws Exception {
 
         board.getBitboard().placePieceOnSquare(12, PieceType.PAWN, PieceColor.WHITE);
-        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
+        List<Move> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
@@ -63,7 +64,7 @@ class PawnMoveGeneratorTest {
     @Test
     void testPawnInitialDoubleForwardMove() {
         board.getBitboard().placePieceOnSquare(52, PieceType.PAWN, PieceColor.BLACK);
-        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(52, PieceColor.BLACK);
+        List<Move> moves = pawnMoveGenerator.generateMovesForPawn(52, PieceColor.BLACK);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
@@ -81,7 +82,7 @@ class PawnMoveGeneratorTest {
         board.getBitboard().placePieceOnSquare(28, PieceType.PAWN, PieceColor.WHITE);
 
         // Generate moves for the pawn on e4
-        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(28, PieceColor.WHITE);
+        List<Move> moves = pawnMoveGenerator.generateMovesForPawn(28, PieceColor.WHITE);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
@@ -124,7 +125,7 @@ class PawnMoveGeneratorTest {
         board.getBitboard().placePieceOnSquare(28, PieceType.PAWN, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(37, PieceType.PAWN, PieceColor.BLACK);
 
-        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(28, PieceColor.WHITE);
+        List<Move> moves = pawnMoveGenerator.generateMovesForPawn(28, PieceColor.WHITE);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
@@ -142,7 +143,7 @@ class PawnMoveGeneratorTest {
         board.getBitboard().placePieceOnSquare(12, PieceType.PAWN, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(20, PieceType.ROOK, PieceColor.BLACK);
 
-        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
+        List<Move> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
@@ -164,7 +165,7 @@ class PawnMoveGeneratorTest {
         board.getBitboard().placePieceOnSquare(12, PieceType.PAWN, PieceColor.WHITE);
         board.getBitboard().placePieceOnSquare(20, PieceType.ROOK, PieceColor.BLACK);
 
-        List<Integer> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
+        List<Move> moves = pawnMoveGenerator.generateMovesForPawn(12, PieceColor.WHITE);
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
