@@ -6,6 +6,7 @@ import chess.ai_player.move_generation.PawnMoveGenerator;
 import chess.ai_player.move_generation.SlidingPieceMoveGenerator;
 import chess.board.Bitboard;
 
+import chess.board.Board;
 import chess.board.GameStateData;
 import chess.board.Move;
 import chess.board.enums.PieceColor;
@@ -25,7 +26,7 @@ public class GameState {
         this.bitboard = gameStateData.getBitboard();
         this.currentPlayer = gameStateData.getCurrentPlayer();
         this.kingPosition = gameStateData.getKingPosition();
-        kingMoveGenerator = new KingMoveGenerator(bitboard);
+        kingMoveGenerator = new KingMoveGenerator();
     }
 
     public boolean isKingInCheck() {
@@ -41,7 +42,7 @@ public class GameState {
             return false;
         }
 
-        List<Move> possibleMoves = kingMoveGenerator.generateMovesForKing(kingPosition, currentPlayer);
+        List<Move> possibleMoves = kingMoveGenerator.generateMovesForKing(bitboard, kingPosition, currentPlayer);
 
         // Check if there's any valid move where the king is not under attack
         for (Move move : possibleMoves) {

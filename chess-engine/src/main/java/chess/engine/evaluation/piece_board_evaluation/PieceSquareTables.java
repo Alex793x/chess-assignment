@@ -8,14 +8,19 @@ public final class PieceSquareTables {
 
     public static int getMidGameValue(PieceType pieceType, PieceColor pieceColor, int square) {
         int[] pieceSquareTable = getMidGamePieceSquareTable(pieceType, pieceColor);
+        if (pieceColor == PieceColor.WHITE) {
+            square = flipSquareIndexForWhite(square);
+        }
         return pieceSquareTable[square];
     }
 
     public static int getEndgameValue(PieceType pieceType, PieceColor pieceColor, int square) {
         int[] pieceSquareTable = getEndgamePieceSquareTable(pieceType, pieceColor);
+        if (pieceColor == PieceColor.WHITE) {
+            square = flipSquareIndexForWhite(square);
+        }
         return pieceSquareTable[square];
     }
-
     public static int[] getMidGamePieceSquareTable(PieceType pieceType, PieceColor pieceColor) {
         return switch (pieceType) {
             case PAWN -> pieceColor == PieceColor.WHITE
@@ -69,5 +74,10 @@ public final class PieceSquareTables {
             case QUEEN -> 4;
             default -> 0;
         };
+    }
+
+
+    public static int flipSquareIndexForWhite(int square) {
+        return square ^ 56;
     }
 }

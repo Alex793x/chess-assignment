@@ -13,13 +13,6 @@ import java.util.List;
 
 public class KingMoveGenerator {
 
-
-    private final Bitboard bitboard;
-
-    public KingMoveGenerator(Bitboard board) {
-        this.bitboard = board;
-    }
-
     /**
      * Generates all valid moves for a king from a specified square.
      * This method utilizes precomputed attack paths to efficiently determine
@@ -30,7 +23,7 @@ public class KingMoveGenerator {
      * @param color the color of the king (PieceColor.WHITE or PieceColor.BLACK).
      * @return a list of integers, each representing a valid destination square index.
      */
-    public List<Move> generateMovesForKing(int square, PieceColor color) {
+    public List<Move> generateMovesForKing(Bitboard bitboard, int square, PieceColor color) {
         List<Move> moves = new ArrayList<>();
         long possibleMoves = PreComputationHandler.KING_ATTACKS[square];
         long occupancies = bitboard.getOccupancies(color);
@@ -66,13 +59,13 @@ public class KingMoveGenerator {
      * @param color the color of the king (PieceColor.WHITE or PieceColor.BLACK).
      * @throws IllegalMoveException if the move is not valid, with a message explaining why.
      */
-    public void moveKing(int fromSquare, int toSquare, PieceColor color) {
-        List<Move> validMoves = generateMovesForKing(fromSquare, color);
+    public void moveKing(Board board, int fromSquare, int toSquare, PieceColor color) {
+        List<Move> validMoves = generateMovesForKing(board.getBitboard(), fromSquare, color);
 
         if (validMoves.contains(toSquare)) {
             // Perform the move on the board
-            bitboard.removePieceFromSquare(fromSquare, PieceType.KING, color);
-            bitboard.placePieceOnSquare(toSquare, PieceType.KING, color);
+            board.getBitboard().removePieceFromSquare(fromSquare, PieceType.KING, color);
+            board.getBitboard().placePieceOnSquare(toSquare, PieceType.KING, color);
             //System.out.println("Move successful: King moved from " + fromSquare + " to " + toSquare);
         } else {
             // If the move is not valid, throw an exception detailing the issue

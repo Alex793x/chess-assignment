@@ -30,14 +30,6 @@ public final class PieceMobilityEvaluation {
         mobilityScore += queenMobility;
         mobilityScore += kingMobility;
 
-        // Log the mobility scores for each piece type
-        //System.out.println(color + " Pawn Mobility: " + pawnMobility);
-        //System.out.println(color + " Knight Mobility: " + knightMobility);
-        //System.out.println(color + " Bishop Mobility: " + bishopMobility);
-        //System.out.println(color + " Rook Mobility: " + rookMobility);
-        //System.out.println(color + " Queen Mobility: " + queenMobility);
-        //System.out.println(color + " King Mobility: " + kingMobility);
-
         return mobilityScore;
     }
 
@@ -89,31 +81,23 @@ public final class PieceMobilityEvaluation {
         long enemyOccupancies = board.getBitboard().getOccupancies(color == PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE);
         long pawnBitboard = 1L << square;
 
-        int direction = color == PieceColor.WHITE ? 8 : -8;
         long singleMoveTarget = color == PieceColor.WHITE ? pawnBitboard << 8 : pawnBitboard >>> 8;
         long doubleMoveTarget = color == PieceColor.WHITE ? pawnBitboard << 16 : pawnBitboard >>> 16;
         long startRankMask = color == PieceColor.WHITE ? PawnMoveGenerator.WHITE_START_RANK_MASK_FOR_DOUBLE_FORWARD_MOVE : PawnMoveGenerator.BLACK_START_RANK_MASK_FOR_DOUBLE_FORWARD_MOVE;
 
-        // Single step forward move
+        // Check forward moves
         if ((singleMoveTarget & allOccupancies) == 0) {
-            mobilityScore += 20;
+            mobilityScore += 10;  // Free to move forward one square
+            if ((pawnBitboard & startRankMask) != 0 && (doubleMoveTarget & allOccupancies) == 0) {
+                mobilityScore += 30;  // Free to move forward two squares
+            }
         }
 
-        // Double step forward move
-        if ((pawnBitboard & startRankMask) != 0 && (singleMoveTarget & allOccupancies) == 0 && (doubleMoveTarget & allOccupancies) == 0) {
-            mobilityScore += 10;
-        }
-
-        // Capture moves to the left and right
+        // Check captures
         long leftCaptureTarget = color == PieceColor.WHITE ? pawnBitboard << 7 : pawnBitboard >>> 9;
         long rightCaptureTarget = color == PieceColor.WHITE ? pawnBitboard << 9 : pawnBitboard >>> 7;
-
-        if ((leftCaptureTarget & enemyOccupancies) != 0) {
-            mobilityScore += 30;
-        }
-        if ((rightCaptureTarget & enemyOccupancies) != 0) {
-            mobilityScore += 30;
-        }
+        if ((leftCaptureTarget & enemyOccupancies) != 0) mobilityScore += 50;
+        if ((rightCaptureTarget & enemyOccupancies) != 0) mobilityScore += 50;
 
         return mobilityScore;
     }
@@ -121,21 +105,19 @@ public final class PieceMobilityEvaluation {
     public static int evaluateKnightMobility(Board board, PieceColor color) {
         int mobilityScore = 0;
         long knightBitboard = board.getPieceBitboard(PieceType.KNIGHT, color);
-        long allOccupancies = board.getBitboard().getOccupancies(PieceColor.WHITE) | board.getBitboard().getOccupancies(PieceColor.BLACK);
-        long enemyOccupancies = board.getBitboard().getOccupancies(color == PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE);
+        long allOccupancies = board.getBitboard().getOccupancies(color);  // Friendly pieces
+        long enemyOccupancies = board.getBitboard().getOccupancies(color.opposite());
 
         while (knightBitboard != 0) {
             int square = Long.numberOfTrailingZeros(knightBitboard);
             long knightAttacks = PreComputationHandler.KNIGHT_ATTACKS[square];
             long captures = knightAttacks & enemyOccupancies;
-            long legalMoves = knightAttacks & ~board.getBitboard().getOccupancies(color);
+            long legalMoves = knightAttacks & ~allOccupancies;  // Legal moves exclude squares occupied by friendly pieces
 
             legalMoves &= ~captures;
-
-            mobilityScore += Long.bitCount(legalMoves) * 20; // Assign a higher score for legal moves
-            mobilityScore += Long.bitCount(captures) * 30; // Assign an even higher score for captures
-
-            knightBitboard &= knightBitboard - 1;
+            mobilityScore += Long.bitCount(legalMoves) * 30;  // Legal moves
+            mobilityScore += Long.bitCount(captures) * 50; // Assign an even higher score for captures
+            knightBitboard &= knightBitboard - 1;  // Move to the next knight
         }
 
         return mobilityScore;
@@ -153,8 +135,8 @@ public final class PieceMobilityEvaluation {
             long legalMoves = bishopAttacks & ~board.getBitboard().getOccupancies(color);
             long captures = bishopAttacks & enemyOccupancies;
 
-            mobilityScore += Long.bitCount(legalMoves) * 20; // Assign a higher score for legal moves
-            mobilityScore += Long.bitCount(captures) * 30; // Assign an even higher score for captures
+            mobilityScore += Long.bitCount(legalMoves) * 30; // Assign a higher score for legal moves
+            mobilityScore += Long.bitCount(captures) * 50; // Assign an even higher score for captures
 
             bishopBitboard &= bishopBitboard - 1;
         }
@@ -175,8 +157,8 @@ public final class PieceMobilityEvaluation {
             long captures = rookAttacks & enemyOccupancies;
 
             legalMoves &= ~captures;
-            mobilityScore += Long.bitCount(legalMoves) * 20;
-            mobilityScore += Long.bitCount(captures) * 30;
+            mobilityScore += Long.bitCount(legalMoves) * 30;
+            mobilityScore += Long.bitCount(captures) * 50;
 
             rookBitboard &= rookBitboard - 1;
         }
@@ -197,8 +179,8 @@ public final class PieceMobilityEvaluation {
             long captures = queenAttacks & enemyOccupancies;
 
             legalMoves &= ~captures;
-            mobilityScore += Long.bitCount(legalMoves) * 20;
-            mobilityScore += Long.bitCount(captures) * 30;
+            mobilityScore += Long.bitCount(legalMoves) * 30;
+            mobilityScore += Long.bitCount(captures) * 50;
 
             queenBitboard &= queenBitboard - 1;
         }
@@ -213,7 +195,7 @@ public final class PieceMobilityEvaluation {
 
         while (kingBitboard != 0) {
             int square = Long.numberOfTrailingZeros(kingBitboard);
-            mobilityScore += Long.bitCount(PreComputationHandler.KING_ATTACKS[square] & ~board.getBitboard().getOccupancies(color)) * 10;
+            mobilityScore += Long.bitCount(PreComputationHandler.KING_ATTACKS[square] & ~board.getBitboard().getOccupancies(color)) * 30;
             kingBitboard &= kingBitboard - 1;
         }
 

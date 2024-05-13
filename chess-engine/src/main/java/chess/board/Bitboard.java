@@ -356,4 +356,9 @@ public class Bitboard {
         }
         return null;
     }
+
+    public long getAllOccupancies() {
+        return whiteKing | whiteQueens | whiteRooks | whiteBishops | whiteKnights | whitePawns |
+               blackKing | blackQueens | blackRooks | blackBishops | blackKnights | blackPawns;
+    }
 }

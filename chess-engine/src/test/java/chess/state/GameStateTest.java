@@ -66,8 +66,8 @@ class GameStateTest {
         board.getBitboard().placePieceOnSquare(2, PieceType.QUEEN, PieceColor.BLACK);
         board.getBitboard().placePieceOnSquare(16, PieceType.QUEEN, PieceColor.BLACK);
 
-        KingMoveGenerator kingMoveGenerator = new KingMoveGenerator(board.getBitboard());
-        System.out.println("King moves: " + kingMoveGenerator.generateMovesForKing(0, PieceColor.WHITE));
+        KingMoveGenerator kingMoveGenerator = new KingMoveGenerator();
+        System.out.println("King moves: " + kingMoveGenerator.generateMovesForKing(board.getBitboard(),0, PieceColor.WHITE));
 
         System.out.println(board.getBitboard().convertBitboardToBinaryString());
 

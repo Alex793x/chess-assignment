@@ -177,7 +177,7 @@ public final class Board {
             bitboard.placePieceOnSquare(move.getToSquare(), move.getCapturedPieceType(), currentPlayer.opposite());
         }
 
-        // Revert the player turn
+        // Correctly revert the player turn
         updateGameState(currentPlayer, gameState.isKingInCheck(), gameState.isKingInCheckmate());
     }
 
@@ -226,10 +226,10 @@ public final class Board {
     public int getKingPosition(PieceColor color) {
         long kingBitboard = (color == PieceColor.WHITE) ? getPieceBitboard(PieceType.KING, PieceColor.WHITE) : getPieceBitboard(PieceType.KING, PieceColor.BLACK);
         if (kingBitboard == 0) {
-            System.err.println("No king found for " + color + ". Bitboard is zero.");
+            //System.err.println("No king found for " + color + ". Bitboard is zero.");
             return -1;
         }
-        System.out.println("King for " + color + " found at position " + Long.numberOfTrailingZeros(kingBitboard));
+        //System.out.println("King for " + color + " found at position " + Long.numberOfTrailingZeros(kingBitboard));
         return Long.numberOfTrailingZeros(kingBitboard);
     }
 

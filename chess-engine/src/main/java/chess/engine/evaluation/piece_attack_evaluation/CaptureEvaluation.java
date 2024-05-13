@@ -20,59 +20,44 @@ public class CaptureEvaluation {
     public static int staticExchangeEvaluation(Board board, Move move, PieceColor side) {
         long boardHash = board.getHash();
 
-
-        // Check if the result is already in the transposition table
         if (transpositionTable.containsKey(boardHash)) {
-            //System.out.println("RETURNING HASHED BITBOARD DUE TO ALREADY CHECKED!!!");
             return transpositionTable.get(boardHash);
         }
         if (move.getCapturedPieceType() == null) {
-            //System.out.println("No capture involved in the move.");
             return 0; // No capturing move
         }
 
         LinkedList<Integer> gains = new LinkedList<>();
         gains.add(move.getCapturedPieceType().getMidGameValue()); // Initial value of the captured piece
-        //System.out.println("Initial gain: " + gains.peek() + " for capturing " + move.getCapturedPieceType());
 
         board.makeMove(move);
-        //System.out.println("After making initial move: " + move);
-        //System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
-        side = side.opposite(); // Change side after the move
         int depth = 0;
         List<Move> movesMade = new ArrayList<>();
         movesMade.add(move);
 
         while (true) {
-            Move response = findLeastValuableAttacker(board, move.getToSquare(), side);
+            Move response = findLeastValuableAttacker(board, move.getToSquare(), board.getCurrentPlayer());
             if (response == null) {
                 //System.out.println("No more attackers at depth " + depth);
                 break;
             }
 
-            //System.out.println("Response move at depth " + depth + ": " + response);
             board.makeMove(response);
-            //System.out.println("Board after move at depth " + depth + ": ");
-            //System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
             movesMade.add(response);
             depth++;
             int value = response.getCapturedPieceType().getMidGameValue() - gains.get(depth - 1);
             gains.add(value);
-            //System.out.println("Depth " + depth + " gain: " + value);
 
             if (-gains.get(depth - 1) > gains.get(depth)) {
                 gains.set(depth, -gains.get(depth - 1));
             }
-            side = side.opposite();
         }
 
         for (int i = movesMade.size() - 1; i >= 0; i--) {
             board.undoMove(movesMade.get(i));
         }
-        //System.out.println("Board after undoing all moves:");
-        //System.out.println(board.getBitboard().convertBitboardToBinaryString());
 
         while (depth > 0) {
             gains.set(depth - 1, -Math.max(-gains.get(depth - 1), gains.get(depth)));
@@ -82,7 +67,6 @@ public class CaptureEvaluation {
         int finalValue = gains.getFirst();
         transpositionTable.put(boardHash, finalValue);
 
-        //System.out.println("Final gain after negamax: " + gains.getFirst());
         return gains.getFirst(); // Return the net gain from the root of the capture sequence
     }
 
