@@ -176,14 +176,15 @@ public class Board {
     public static void main(String[] args) {
         Board board = new Board();
         board.getBitboard().setupInitialPositions();
+        board.getBitboard().loadFENFlipped("rn2kb1r/pp3ppp/2p3b1/q2np3/B5PP/2NP1P2/PPP5/R1BQK1NR w KQkq - 0 11");
         System.out.println(PSTHandler.getMidGameValue(PieceType.KING, PieceColor.BLACK, 4));
-        board.getBitboard().printNumberPosition();
-        board.getBitboard().printBoard();
+        board.getBitboard().printBoardFlipped();
         board.setCurrentPlayer(CurrentPlayer.WHITE);
         Engine engine = new Engine(6);
         System.out.println(Evaluator.evaluateStaticBoard(board));
         System.out.println(engine.findBestMove(board, true));
-
+        board.getBitboard().printNumberPosition();
+        board.getBitboard().printBoard();
     }
 
 }
