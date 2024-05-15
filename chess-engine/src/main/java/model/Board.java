@@ -173,15 +173,15 @@ public class Board {
     public static void main(String[] args) {
         Board board = new Board();
         board.getBitboard().setupInitialPositions();
-        System.out.println(PSTHandler.getMidGameValue(PieceType.KING, PieceColor.BLACK, 4));
-        board.getBitboard().loadFENFlipped("rn2kb1r/pp3ppp/2p2nb1/q2pp3/B3P1PP/2NP1P2/PPP5/R1BQK1NR w KQkq - 0 10");
-        board.getBitboard().printBoardFlipped();
+        System.out.println("PSTHandler midGameValue: " + PSTHandler.getMidGameValue(PieceType.KING, PieceColor.BLACK, 4));
+        //board.getBitboard().loadFENFlipped("rn2kb1r/pp3ppp/2p2nb1/q2pp3/B3P1PP/2NP1P2/PPP5/R1BQK1NR w KQkq -
+        board.getBitboard().loadFENFlipped("1rb1kbnr/ppppq2p/2n2pp1/4P3/4P3/2P2N2/PP1B1PPP/RN1QKB1R w KQk - 0 8");
         board.setCurrentPlayer(CurrentPlayer.WHITE);
         Engine engine = new Engine(6);
         board.getBitboard().printNumberPosition();
         board.getBitboard().printBoard();
-        System.out.println(Evaluator.evaluateStaticBoard(board));
-        System.out.println(engine.findBestMove(board, true));
+        System.out.println("Evaluate static board:" + Evaluator.evaluateStaticBoard(board));
+        System.out.println("Best Move: " + engine.findBestMove(board, true));
     }
 
 }
