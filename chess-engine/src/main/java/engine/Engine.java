@@ -6,13 +6,10 @@ import lombok.Getter;
 import model.Board;
 import model.Move;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.concurrent.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static engine.move_generation.comparators.MoveValueEndGameComparator.calculateMoveValue;
 
 @Getter
 public class Engine {
@@ -21,8 +18,6 @@ public class Engine {
     private final MoveGenerator moveGenerator = new MoveGenerator();
     private final Map<Long, Integer> transpositionTable = new ConcurrentHashMap<>();
     private final Map<Long, Integer> transpositionTableDepth = new ConcurrentHashMap<>();
-
-    private final ForkJoinPool forkJoinPool = new ForkJoinPool();
 
     private int totalNodesEvaluated;
     private int totalNodesPossibilities;
@@ -42,28 +37,41 @@ public class Engine {
         totalNodesEvaluated = 0;
         totalNodesPossibilities = 0;
 
-        List<Callable<MoveEvaluationResult>> tasks = new ArrayList<>();
+        Move bestMove = null;
+        int bestValue = isWhiteTurn ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+
         while (!allMovesQueue.isEmpty()) {
             Move move = allMovesQueue.poll();
             totalNodesPossibilities++;
-            tasks.add(() -> evaluateMove(move, alpha, beta, board, searchDepth, isWhiteTurn));
+            int moveValue = evaluateMove(move, alpha, beta, board, searchDepth, isWhiteTurn).value;
+
+            if (isWhiteTurn && moveValue > bestValue) {
+                bestValue = moveValue;
+                bestMove = move;
+                alpha = Math.max(alpha, bestValue);
+            } else if (!isWhiteTurn && moveValue < bestValue) {
+                bestValue = moveValue;
+                bestMove = move;
+                beta = Math.min(beta, bestValue);
+            }
+
+            if (beta <= alpha) {
+                break; // α-β cutoff
+            }
         }
 
-        try {
-            List<Future<MoveEvaluationResult>> futures = forkJoinPool.invokeAll(tasks);
-            return processResults(futures, isWhiteTurn, alpha, beta);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return null;
-        }
+        System.out.println("TOTAL NODES EVALUATED: " + totalNodesEvaluated);
+        System.out.println("TOTAL NODES POSSIBILITIES: " + totalNodesPossibilities);
+        return bestMove;
     }
 
     private MoveEvaluationResult evaluateMove(Move move, int alpha, int beta, Board board, int depth, boolean isWhiteTurn) {
         Board boardCopy = board.deepCopy();
         boardCopy.makeMove(move);
-        int movePoint = calculateMoveValue(move);
-        int moveValue = isWhiteTurn ? movePoint : -movePoint;
-        int boardValue = moveValue + alphaBeta(boardCopy, depth - 1, alpha, beta, !isWhiteTurn);
+        int moveAttackPenalty = move.getAttackPenalty();
+        int protectionBonus = move.isProtected() ? 500 : 0;
+        int penaltyByTurn = isWhiteTurn ? moveAttackPenalty + protectionBonus : -moveAttackPenalty - protectionBonus;
+        int boardValue = penaltyByTurn+ alphaBeta(boardCopy, depth - 1, alpha, beta, !isWhiteTurn);
         boardCopy.undoMove(move);
         return new MoveEvaluationResult(move, boardValue);
     }
@@ -90,9 +98,10 @@ public class Engine {
             Move move = allMovesQueue.poll();
             totalNodesPossibilities++;
             board.makeMove(move);
-            int movePoint = calculateMoveValue(move);
-            int moveValue = isWhiteTurn ? movePoint : -movePoint;
-            int value = moveValue + alphaBeta(board, depth - 1, alpha, beta, !isWhiteTurn);
+            int moveAttackPenalty = move.getAttackPenalty();
+            int protectionBonus = move.isProtected() ? 500 : 0;
+            int penaltyByTurn = isWhiteTurn ? moveAttackPenalty + protectionBonus : -moveAttackPenalty - protectionBonus;
+            int value = penaltyByTurn + alphaBeta(board, depth - 1, alpha, beta, !isWhiteTurn);
             board.undoMove(move);
 
             if (isWhiteTurn) {
@@ -114,43 +123,6 @@ public class Engine {
         return isWhiteTurn ? alpha : beta;
     }
 
-    private Move processResults(List<Future<MoveEvaluationResult>> futures, boolean isWhiteTurn, int alpha, int beta) {
-        Move bestMove = null;
-        int bestValue = isWhiteTurn ? Integer.MIN_VALUE : Integer.MAX_VALUE;
-
-        for (Future<MoveEvaluationResult> future : futures) {
-            try {
-                MoveEvaluationResult result = future.get();
-                if (isWhiteTurn && result.value > bestValue) {
-                    bestValue = result.value;
-                    bestMove = result.move;
-                    alpha = Math.max(alpha, bestValue);
-                } else if (!isWhiteTurn && result.value < bestValue) {
-                    bestValue = result.value;
-                    bestMove = result.move;
-                    beta = Math.min(beta, bestValue);
-                }
-
-                if (beta <= alpha) {
-                    break; // α-β cutoff
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-
-        System.out.println("TOTAL NODES EVALUATED: " + totalNodesEvaluated);
-        System.out.println("TOTAL NODES POSSIBILITIES: " + totalNodesPossibilities);
-        return bestMove;
-    }
-
-    private static class MoveEvaluationResult {
-        private final Move move;
-        private final int value;
-
-        public MoveEvaluationResult(Move move, int value) {
-            this.move = move;
-            this.value = value;
-        }
+    private record MoveEvaluationResult(Move move, int value) {
     }
 }

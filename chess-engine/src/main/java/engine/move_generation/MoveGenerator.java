@@ -74,16 +74,17 @@ public class MoveGenerator {
             for (int pos = potentialMoves.nextSetBit(0); pos >= 0; pos = potentialMoves.nextSetBit(pos + 1)) {
                 boolean isCapture = enemies.get(pos);
                 boolean isPromotion = (currentPlayer == CurrentPlayer.WHITE && pos / 8 == 0) || (currentPlayer == CurrentPlayer.BLACK && pos / 8 == 7);
-                boolean isProtected = hasAdequateProtection(pos, bitboard, currentPlayer, isMidgame);
+                boolean isProtected = hasAdequateProtection(pos, bitboard, currentPlayer.getOppositePlayer(), isMidgame);
                 boolean isAttacked = enemiesAttackVectors.get(pos);
+                Piece protectedByPiece = bitboard.findLowestValueAttacker(pos, currentPlayer.getOppositePlayer(), isMidgame, square);
 
                 // Check for diagonal moves (captures) and straight moves (non-captures)
                 if (isCapture || (!occupied.get(pos) && pos % 8 == pawnSquare % 8)) {
-                    if (!allies.get(pos) && (!pins.get(square) || moveAlongPinLine(square, pos)) && !isSquareAttackedAndNotProtected(pos, alliesAttackVectors, enemiesAttackVectors)) {
-                        Piece piece = bitboard.getPieceBySquare(square);
+                    if (!allies.get(pos) && (!pins.get(pawnSquare) || moveAlongPinLine(pawnSquare, pos)) && !isSquareAttackedAndNotProtected(pos, alliesAttackVectors, enemiesAttackVectors)) {
+                        Piece piece = bitboard.getPieceBySquare(pawnSquare);
 
                         if (piece == null) {
-                            System.err.println("Null piece encountered at square: " + square);
+                            System.err.println("Null piece encountered at square: " + pawnSquare);
                             continue;
                         }
 
@@ -104,7 +105,8 @@ public class MoveGenerator {
                                 board.getHalfMoveClock(),
                                 isProtected,
                                 isAttacked,
-                                attackPenalty
+                                attackPenalty,
+                                protectedByPiece
                         );
 
                         if (isMoveLegal(move, board)) {
@@ -133,8 +135,8 @@ public class MoveGenerator {
         CurrentPlayer currentPlayer = board.getCurrentPlayer();
         BitSet allies = bitboard.getAllPiecesByColor(currentPlayer);
         BitSet enemies = bitboard.getAllPiecesByColor(currentPlayer.getOppositePlayer());
-        BitSet alliesAttackVectors = board.getBitboard().getAllPiecesByColor(currentPlayer);
-        BitSet enemiesAttackVectors = board.getBitboard().getAllPiecesByColor(currentPlayer.getOppositePlayer());
+        BitSet alliesAttackVectors = board.getBitboard().getAttackVectorsByColor(currentPlayer.equals(CurrentPlayer.WHITE) ? PieceColor.WHITE : PieceColor.BLACK);
+        BitSet enemiesAttackVectors = board.getBitboard().getAttackVectorsByColor(currentPlayer.equals(CurrentPlayer.WHITE) ? PieceColor.BLACK : PieceColor.WHITE);
         BitSet pins = currentPlayer == CurrentPlayer.WHITE ? bitboard.getWhitePins() : bitboard.getBlackPins();
 
         MoveResult moveResult = new MoveResult(isMidgame ? new MoveValueMidGameComparator() : new MoveValueEndGameComparator());
@@ -152,8 +154,9 @@ public class MoveGenerator {
                 int positionalPSTValue = isMidgame
                         ? PSTHandler.getMidGameValue(piece.getPieceType(), piece.getPieceColor(), pos)
                         : PSTHandler.getEndgameValue(piece.getPieceType(), piece.getPieceColor(), pos);
-                boolean isProtected = hasAdequateProtection(pos, bitboard, currentPlayer, isMidgame);
+                boolean isProtected = hasAdequateProtection(square, bitboard, currentPlayer.getOppositePlayer(), isMidgame);
                 boolean isAttacked = enemiesAttackVectors.get(pos);
+                Piece protectedByPiece = bitboard.findLowestValueAttacker(pos, currentPlayer.getOppositePlayer(), isMidgame, square);
                 int attackPenalty = calculateAttackPenalty(piece, isProtected, pos, enemiesAttackVectors, bitboard, currentPlayer, isMidgame);
 
                 if (!pins.get(square) || moveAlongPinLine(square, pos)) {
@@ -168,7 +171,8 @@ public class MoveGenerator {
                             board.getHalfMoveClock(),
                             isProtected,
                             isAttacked,
-                            attackPenalty
+                            attackPenalty,
+                            protectedByPiece
                     );
 
                     if (isMoveLegal(move, board)) {
@@ -188,6 +192,7 @@ public class MoveGenerator {
 
         return moveResult;
     }
+
 
     public boolean isMoveLegal(Move move, Board board) {
         // Simulate the move
@@ -247,7 +252,7 @@ public class MoveGenerator {
 
                     Piece king = bitboard.getPieceBySquare(kingSquare);
                     if (king != null && king.getPieceType() == PieceType.KING) {
-                        Move kingsideCastling = new Move(kingSquare, kingSquare + 2, 0, king, null, false, false, board.getHalfMoveClock(), true, false, 0);
+                        Move kingsideCastling = new Move(kingSquare, kingSquare + 2, 0, king, null, false, false, board.getHalfMoveClock(), true, false, 0, null);
                         castlingMoves.add(kingsideCastling);
                     }
                 }
@@ -262,7 +267,7 @@ public class MoveGenerator {
 
                     Piece king = bitboard.getPieceBySquare(kingSquare);
                     if (king != null && king.getPieceType() == PieceType.KING) {
-                        Move queensideCastling = new Move(kingSquare, kingSquare - 2, 0, king, null, false, false, board.getHalfMoveClock(), true, false, 0);
+                        Move queensideCastling = new Move(kingSquare, kingSquare - 2, 0, king, null, false, false, board.getHalfMoveClock(), true, false, 0, null);
                         castlingMoves.add(queensideCastling);
                     }
                 }
@@ -275,60 +280,34 @@ public class MoveGenerator {
         int penalty = 0;
         int pieceValue = piece.getPieceValue(isMidgame);
 
-        // If the piece is attacked
         if (attackVectors.get(pos)) {
-            Piece attacker = bitboards.findLowestValueAttacker(pos, currentPlayer.getOppositePlayer(), isMidgame);
+            Piece attacker = bitboards.findLowestValueAttacker(pos, currentPlayer.getOppositePlayer(), isMidgame, piece.getSquare());
 
             if (attacker != null) {
                 int attackerValue = attacker.getPieceValue(isMidgame);
 
-                // Find the lowest value protector
-                Piece protector = bitboards.findLowestValueAttacker(pos, currentPlayer, isMidgame);
-
-                if (protector != null) {
-                    int protectorValue = protector.getPieceValue(isMidgame);
-
-                    if (attackerValue < pieceValue) {
-                        // Attacked by a lesser-valued piece
-                        if (attackerValue < protectorValue) {
-                            // Bad trade if attacker is lesser valued than protector
-                            penalty += ((pieceValue - attackerValue) * 3);
-                        } else {
-                            // Moderate penalty if protected by a higher or equal valued piece
-                            penalty += (int) ((pieceValue - attackerValue) * 1.5);
-                        }
-                    } else {
-                        // If attacked by an equal or higher-valued piece
-                        if (!isProtected) {
-                            penalty += (int) (pieceValue * 1.5);
-                        }
-                    }
-                } else {
-                    // If no protector found, apply a high penalty to encourage moving the piece away
-                    penalty += pieceValue * 3;
+                if (attackerValue < pieceValue) {
+                    penalty += ((pieceValue - attackerValue) * 3);
+                } else if (!isProtected) {
+                    penalty += pieceValue * 1.5;
                 }
             }
         } else if (!isProtected) {
-            // Do not apply any penalty if the piece is not under attack and not protected
-            penalty = 0;
+            penalty = pieceValue * 3;
         }
 
         return -penalty;
     }
 
-
-
-
-
+    private boolean hasAdequateProtection(int pos, Bitboards bitboards, CurrentPlayer currentPlayer, boolean isMidgame) {
+        Piece protector = bitboards.findLowestValueAttacker(pos, currentPlayer, isMidgame, pos);
+        return protector != null;
+    }
 
     private boolean isSquareAttackedAndNotProtected(int square, BitSet alliesAttackVectors, BitSet enemiesAttackVectors) {
         return enemiesAttackVectors.get(square) && !alliesAttackVectors.get(square);
     }
 
-    private boolean hasAdequateProtection(int pos, Bitboards bitboards, CurrentPlayer currentPlayer, boolean isMidgame) {
-        Piece protector = bitboards.findLowestValueAttacker(pos, currentPlayer, isMidgame);
-        return protector != null;
-    }
 
 
     public PriorityQueue<Move> generateAllMoves(Board board) {

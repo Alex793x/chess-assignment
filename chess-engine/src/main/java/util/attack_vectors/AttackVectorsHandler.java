@@ -19,16 +19,16 @@ public class AttackVectorsHandler {
             case ROOK:
                 return calculateSlidingPieceAttacks(position, new int[]{-8, 8, -1, 1}, allPieces);
             case QUEEN:
-                // Queens combine rook and bishop movements
                 BitSet queenAttacks = calculateSlidingPieceAttacks(position, new int[]{-9, -7, 7, 9}, allPieces);
                 queenAttacks.or(calculateSlidingPieceAttacks(position, new int[]{-8, 8, -1, 1}, allPieces));
                 return queenAttacks;
             case KING:
-                return (BitSet) PreComputedData.kingMoves[position].clone();  // Clone the BitSet to avoid modifying the original
+                return (BitSet) PreComputedData.kingMoves[position].clone();
             default:
                 return new BitSet(64);
         }
     }
+
 
     public static BitSet calculateMovesForPiece(PieceType pieceType, int position, PieceColor color, BitSet allPieces, BitSet emptySquares) {
         switch (pieceType) {
@@ -78,14 +78,17 @@ public class AttackVectorsHandler {
         int col = position % 8;
         int rowDirection = color == PieceColor.WHITE ? -1 : 1; // White pawns move up, Black pawns move down
         int[] cols = {col - 1, col + 1};
+
         for (int newCol : cols) {
             int newRow = row + rowDirection;
             if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
-                attacks.set(newRow * 8 + newCol);
+                int attackPosition = newRow * 8 + newCol;
+                attacks.set(attackPosition);
             }
         }
         return attacks;
     }
+
 
     // Sliding moves account for both attacks and legal moves into empty squares
     private static BitSet calculateSlidingPieceMoves(int position, int[] directions, BitSet allPieces, BitSet emptySquares) {

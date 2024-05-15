@@ -46,24 +46,21 @@ public class PreComputedData {
         int row = square / 8;
         int col = square % 8;
 
-        // Standard single move forward
         if (row > 0) {
-            int forward = square - 8; // moves up one row
+            int forward = square - 8;
             moves.set(forward);
         }
 
-        // Double move forward from starting position
         if (row == 6) {
-            int doubleForward = square - 16; // moves up two rows
+            int doubleForward = square - 16;
             moves.set(doubleForward);
         }
 
-        // Captures
-        if (col > 0 && row > 0) { // Capture to the left
+        if (col > 0 && row > 0) {
             int captureLeft = square - 9;
             moves.set(captureLeft);
         }
-        if (col < 7 && row > 0) { // Capture to the right
+        if (col < 7 && row > 0) {
             int captureRight = square - 7;
             moves.set(captureRight);
         }
@@ -71,36 +68,33 @@ public class PreComputedData {
         return moves;
     }
 
-
     private static BitSet generateBlackPawnMoves(int square) {
         BitSet moves = new BitSet(64);
         int row = square / 8;
         int col = square % 8;
 
-        // Standard single move forward
         if (row < 7) {
             int forward = square + 8;
             moves.set(forward);
         }
 
-        // Double move forward from starting position
         if (row == 1) {
             int doubleForward = square + 16;
             moves.set(doubleForward);
         }
 
-        // Captures
-        if (col > 0 && row < 7) { // Capture to the left
+        if (col > 0 && row < 7) {
             int captureLeft = square + 7;
             moves.set(captureLeft);
         }
-        if (col < 7 && row < 7) { // Capture to the right
+        if (col < 7 && row < 7) {
             int captureRight = square + 9;
             moves.set(captureRight);
         }
 
         return moves;
     }
+
 
 
     private static BitSet generateKnightMoves(int position) {
