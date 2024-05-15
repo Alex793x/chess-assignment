@@ -5,6 +5,8 @@ import engine.move_generation.MoveGenerator;
 import lombok.Getter;
 import model.Board;
 import model.Move;
+import model.Piece;
+import model.enums.PieceType;
 
 import java.util.PriorityQueue;
 import java.util.Map;
@@ -65,33 +67,57 @@ public class Engine {
 
     private MoveEvaluationResult evaluateMove(Move move, int alpha, int beta, Board board, int depth, boolean isWhiteTurn) {
         Board boardCopy = board.deepCopy();
+
+        // Make the move on the copied board
         boardCopy.makeMove(move);
 
+        // Check for immediate checkmate after the move
+        if (boardCopy.isGameOver()) {
+            // If this move results in checkmate, assign the highest possible value for the current player
+            int checkmateValue = isWhiteTurn ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+            return new MoveEvaluationResult(move, checkmateValue);
+        }
+
+        // Evaluate the static board after making the move
+        int staticBoardEvaluationAfter = Evaluator.evaluateStaticBoard(boardCopy);
+
+        // Calculate other factors contributing to the move value
+        Piece capturedPiece = move.getCapturedPiece();
         int moveAttackPenalty = move.getAttackPenalty();
+        int attackBonus = move.getIsAttackingOtherPiece(); // Assuming you renamed it correctly
+        int defendingBonus = move.getIsDefendingOtherPiece() * 2;
         int protectionBonus = move.isProtected() ? 500 : 0;
         int positionGain = move.getPositionGain();
-
+        int attackingOtherPieceValue = isWhiteTurn ? attackBonus : -attackBonus;
+        int defendingOtherPieceValue = isWhiteTurn ? defendingBonus : -defendingBonus;
         int penaltyByTurn = isWhiteTurn ? moveAttackPenalty + protectionBonus : -moveAttackPenalty - protectionBonus;
-        int moveValue = positionGain + penaltyByTurn;
 
-        // Evaluate the board after the move
-        int staticBoardEvaluation = Evaluator.evaluateStaticBoard(boardCopy);
+        // Special handling for game-over situations
+        int gameOverBonus = 0;
+        if (capturedPiece != null && capturedPiece.getPieceType().equals(PieceType.KING)) {
+            System.out.println("KING CAUGHT");
+            gameOverBonus = isWhiteTurn ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+        }
 
-        // Adjust the moveValue to include the static board evaluation directly
-        int adjustedMoveValue = moveValue + staticBoardEvaluation;
+        int moveValue = positionGain + penaltyByTurn + attackingOtherPieceValue + defendingOtherPieceValue + gameOverBonus + staticBoardEvaluationAfter;
 
+        // Evaluate the board using alpha-beta pruning
         int boardValue = alphaBeta(boardCopy, depth - 1, alpha, beta, !isWhiteTurn);
         boardCopy.undoMove(move);
 
+        // Combine move value and board value
+        int totalValue = moveValue + boardValue;
+
         // Logging for debugging
         System.out.println("Evaluating move: " + move);
-        System.out.println("Move value: " + moveValue + ", Adjusted Move value: " + adjustedMoveValue + ", Board value: " + boardValue + ", Static Board Evaluation: " + staticBoardEvaluation);
+        System.out.println("Move value: " + moveValue + ", Board value: " + boardValue);
         System.out.println("Position gain: " + positionGain + ", Attack penalty: " + moveAttackPenalty + ", Protection bonus: " + protectionBonus);
-        System.out.println("Board Evaluation after move: " + Evaluator.evaluateStaticBoard(boardCopy));
+        System.out.println("Static Board Evaluation after move: " + staticBoardEvaluationAfter);
         System.out.println("==========================================");
 
-        return new MoveEvaluationResult(move, adjustedMoveValue + boardValue);
+        return new MoveEvaluationResult(move, totalValue);
     }
+
 
     private int alphaBeta(Board board, int depth, int alpha, int beta, boolean isWhiteTurn) {
         long boardHash = board.getHash();
@@ -140,5 +166,6 @@ public class Engine {
     }
 
     private record MoveEvaluationResult(Move move, int value) {
+
     }
 }

@@ -21,6 +21,10 @@ public class MoveValueMidGameComparator implements Comparator<Move> {
             captureValue = capturedValue * 10 - attackerValue; // Higher weight to more valuable captures
         }
 
+        if (move.isPromotion()) {
+            captureValue += 1000;
+        }
+
         int positionalValue = move.getPositionGain();
         int protectionBonus = move.isProtected() ? 500 : 0;
         int attackPenalty = move.isAttacked() ? -move.getAttackPenalty() : 0;

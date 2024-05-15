@@ -1,28 +1,35 @@
 package engine.move_generation;
 
+import java.util.*;
+import java.util.logging.Logger;
+
 import engine.evaluations.material_board.PeSTOEvaluation;
 import engine.move_generation.comparators.MoveValueEndGameComparator;
 import engine.move_generation.comparators.MoveValueMidGameComparator;
 import engine.move_generation.model.MoveResult;
-import model.*;
+import lombok.extern.slf4j.Slf4j;
+import model.Bitboards;
+import model.Board;
+import model.Move;
+import model.Piece;
+import model.Player;
 import model.enums.CurrentPlayer;
 import model.enums.PieceColor;
 import model.enums.PieceType;
+import util.attack_vectors.AttackVectorsHandler;
 import util.precompuation.PreComputedData;
 import util.pst.PSTHandler;
 
-import java.util.*;
+import static util.precompuation.PreComputedData.*;
 
-import static engine.evaluations.material_board.PeSTOEvaluation.isMidgamePhase;
-import static util.precompuation.PreComputedData.getBishopAttacks;
-import static util.precompuation.PreComputedData.getQueenAttacks;
-
+@Slf4j
 public class MoveGenerator {
 
     public MoveResult generateActualKnightMoves(int square, Board board) {
         BitSet potentialMoves = PreComputedData.knightMoves[square];
         return generateMoves(square, potentialMoves, board);
     }
+
 
     public MoveResult generateActualBishopMoves(int square, Board board) {
         BitSet occupied = board.getBitboard().getOccupiedSquares();
@@ -75,25 +82,31 @@ public class MoveGenerator {
             for (int pos = potentialMoves.nextSetBit(0); pos >= 0; pos = potentialMoves.nextSetBit(pos + 1)) {
                 boolean isCapture = enemies.get(pos);
                 boolean isPromotion = (currentPlayer == CurrentPlayer.WHITE && pos / 8 == 0) || (currentPlayer == CurrentPlayer.BLACK && pos / 8 == 7);
-                boolean isProtected = hasAdequateProtection(pos, bitboard, currentPlayer.getOppositePlayer(), isMidgame);
+                boolean isProtected = hasAdequateProtection(pawnSquare, pos, bitboard, currentPlayer, isMidgame);
                 boolean isAttacked = enemiesAttackVectors.get(pos);
-                Piece protectedByPiece = bitboard.findLowestValueAttacker(pos, currentPlayer.getOppositePlayer(), isMidgame, square);
+                int attackValueDifference = calculateAttackValueDifference(pawnSquare, pos, currentPlayer, board);
+                int defendingValueDifference = calculateDefensiveValueDifference(pawnSquare, pos, board);
 
                 // Check for diagonal moves (captures) and straight moves (non-captures)
                 if (isCapture || (!occupied.get(pos) && pos % 8 == pawnSquare % 8)) {
-                    if (!allies.get(pos) && (!pins.get(pawnSquare) || moveAlongPinLine(pawnSquare, pos)) && !isSquareAttackedAndNotProtected(pos, alliesAttackVectors, enemiesAttackVectors)) {
-                        Piece piece = bitboard.getPieceBySquare(pawnSquare);
+                    if (!allies.get(pos) && (!pins.get(square) || moveAlongPinLine(square, pos)) && !isSquareAttackedAndNotProtected(pos, alliesAttackVectors, enemiesAttackVectors)) {
+                        Piece piece = bitboard.getPieceBySquare(square);
 
                         if (piece == null) {
-                            System.err.println("Null piece encountered at square: " + pawnSquare);
+                            System.err.println("Null piece encountered at square: " + square);
                             continue;
                         }
 
                         Piece capturedPiece = isCapture ? bitboard.getPieceBySquare(pos) : null;
+                        int positionalPSTValue = isMidgame
+                                ? PSTHandler.getMidGameValue(piece.getPieceType(), piece.getPieceColor(), pos)
+                                : PSTHandler.getEndgameValue(piece.getPieceType(), piece.getPieceColor(), pos);
+                        int attackPenalty = calculateAttackPenalty(piece, isProtected, pos, enemiesAttackVectors, bitboard, currentPlayer, isMidgame);
+
                         Move move = new Move(
                                 pawnSquare,
                                 pos,
-                                0,
+                                isPromotion ? 1000 : positionalPSTValue,
                                 piece,
                                 capturedPiece,
                                 isCapture,
@@ -101,20 +114,23 @@ public class MoveGenerator {
                                 board.getHalfMoveClock(),
                                 isProtected,
                                 isAttacked,
-                                0,
-                                protectedByPiece
+                                attackPenalty,
+                                attackValueDifference,
+                                defendingValueDifference,
+                                false
                         );
-                        move.setPositionGain(calculatePositionGain(move, board));
 
                         if (isMoveLegal(move, board)) {
                             if (isPromotion) {
                                 moveResult.getPromotionMoves().add(move);
                             } else if (isCapture) {
+                                board.setGameOver(capturedPiece.getPieceType().equals(PieceType.KING));
                                 moveResult.getValidCaptures().add(move);
                             } else {
                                 moveResult.getValidMoves().add(move);
                             }
                             if (movePutsOpponentInCheck(move, board, currentPlayer)) {
+                                move.setCheck(true);
                                 moveResult.getCheckMoves().add(move);
                             }
                         }
@@ -126,15 +142,15 @@ public class MoveGenerator {
         return moveResult;
     }
 
-
     private MoveResult generateMoves(int square, BitSet pieceAttacks, Board board) {
         boolean isMidgame = PeSTOEvaluation.isMidgamePhase(board.getBitboard());
         Bitboards bitboard = board.getBitboard();
         CurrentPlayer currentPlayer = board.getCurrentPlayer();
+
         BitSet allies = bitboard.getAllPiecesByColor(currentPlayer);
         BitSet enemies = bitboard.getAllPiecesByColor(currentPlayer.getOppositePlayer());
         BitSet alliesAttackVectors = board.getBitboard().getAttackVectorsByColor(currentPlayer.equals(CurrentPlayer.WHITE) ? PieceColor.WHITE : PieceColor.BLACK);
-        BitSet enemiesAttackVectors = board.getBitboard().getAttackVectorsByColor(currentPlayer.equals(CurrentPlayer.WHITE) ? PieceColor.BLACK : PieceColor.WHITE);
+        BitSet enemiesAttackVectors = board.getBitboard().getAttackVectorsByColor(currentPlayer.getOppositePlayer().equals(CurrentPlayer.WHITE) ? PieceColor.WHITE : PieceColor.BLACK);
         BitSet pins = currentPlayer == CurrentPlayer.WHITE ? bitboard.getWhitePins() : bitboard.getBlackPins();
 
         MoveResult moveResult = new MoveResult(isMidgame ? new MoveValueMidGameComparator() : new MoveValueEndGameComparator());
@@ -142,23 +158,28 @@ public class MoveGenerator {
         for (int pos = pieceAttacks.nextSetBit(0); pos >= 0; pos = pieceAttacks.nextSetBit(pos + 1)) {
             if (!allies.get(pos) && !isSquareAttackedAndNotProtected(pos, alliesAttackVectors, enemiesAttackVectors)) {
                 Piece piece = bitboard.getPieceBySquare(square);
-                // Check if piece is null and handle the error
                 if (piece == null) {
                     System.err.println("Null piece encountered at square: " + square);
-                    continue; // Skip this move generation
+                    continue;
                 }
                 Piece capturedPiece = enemies.get(pos) ? bitboard.getPieceBySquare(pos) : null;
                 boolean isCapture = enemies.get(pos);
-                boolean isProtected = hasAdequateProtection(pos, bitboard, currentPlayer.getOppositePlayer(), isMidgame);
+                int attackValueDifference = calculateAttackValueDifference(square, pos, currentPlayer, board);
+                int defendingValueDifference = calculateDefensiveValueDifference(square, pos, board); // Corrected line
+                int positionalPSTValue = isMidgame
+                        ? PSTHandler.getMidGameValue(piece.getPieceType(), piece.getPieceColor(), pos)
+                        : PSTHandler.getEndgameValue(piece.getPieceType(), piece.getPieceColor(), pos);
+                boolean isProtected = hasAdequateProtection(square, pos, bitboard, currentPlayer, isMidgame); // Checking protection for the destination
                 boolean isAttacked = enemiesAttackVectors.get(pos);
-                Piece protectedByPiece = bitboard.findLowestValueAttacker(pos, currentPlayer.getOppositePlayer(), isMidgame, square);
                 int attackPenalty = calculateAttackPenalty(piece, isProtected, pos, enemiesAttackVectors, bitboard, currentPlayer, isMidgame);
+
+//                System.out.println("Move from square " + square + " to " + pos + " - isProtected: " + isProtected + ", isAttacked: " + isAttacked);
 
                 if (!pins.get(square) || moveAlongPinLine(square, pos)) {
                     Move move = new Move(
                             square,
                             pos,
-                            0,
+                            positionalPSTValue,
                             piece,
                             capturedPiece,
                             isCapture,
@@ -167,9 +188,10 @@ public class MoveGenerator {
                             isProtected,
                             isAttacked,
                             attackPenalty,
-                            protectedByPiece
+                            attackValueDifference,
+                            defendingValueDifference,
+                            false
                     );
-                    move.setPositionGain(calculatePositionGain(move, board));
 
                     if (isMoveLegal(move, board)) {
                         if (capturedPiece != null) {
@@ -179,6 +201,7 @@ public class MoveGenerator {
                         }
 
                         if (movePutsOpponentInCheck(move, board, currentPlayer)) {
+                            move.setCheck(true);
                             moveResult.getCheckMoves().add(move);
                         }
                     }
@@ -249,7 +272,7 @@ public class MoveGenerator {
 
                     Piece king = bitboard.getPieceBySquare(kingSquare);
                     if (king != null && king.getPieceType() == PieceType.KING) {
-                        Move kingsideCastling = new Move(kingSquare, kingSquare + 2, 500, king, null, false, false, board.getHalfMoveClock(), true, false, 0, null);
+                        Move kingsideCastling = new Move(kingSquare, kingSquare + 2, 0, king, null, false, false, board.getHalfMoveClock(), true, false, 0, 0, 500, false);
                         castlingMoves.add(kingsideCastling);
                     }
                 }
@@ -264,7 +287,7 @@ public class MoveGenerator {
 
                     Piece king = bitboard.getPieceBySquare(kingSquare);
                     if (king != null && king.getPieceType() == PieceType.KING) {
-                        Move queensideCastling = new Move(kingSquare, kingSquare - 2, 500, king, null, false, false, board.getHalfMoveClock(), true, false, 0, null);
+                        Move queensideCastling = new Move(kingSquare, kingSquare - 2, 0, king, null, false, false, board.getHalfMoveClock(), true, false, 0, 0, 500, false);
                         castlingMoves.add(queensideCastling);
                     }
                 }
@@ -277,32 +300,139 @@ public class MoveGenerator {
         int penalty = 0;
         int pieceValue = piece.getPieceValue(isMidgame);
 
+        // If the piece is attacked
         if (attackVectors.get(pos)) {
-            Piece attacker = bitboards.findLowestValueAttacker(pos, currentPlayer.getOppositePlayer(), isMidgame, piece.getSquare());
+            Piece attacker = bitboards.findLowestValueAttacker(pos, currentPlayer.getOppositePlayer(), isMidgame);
 
             if (attacker != null) {
                 int attackerValue = attacker.getPieceValue(isMidgame);
 
-                if (attackerValue < pieceValue) {
-                    penalty += ((pieceValue - attackerValue) * 3);
-                } else if (!isProtected) {
-                    penalty += pieceValue * 1.5;
+                // Find the lowest value protector
+                Piece protector = bitboards.findLowestValueAttacker(pos, currentPlayer, isMidgame);
+
+                if (protector != null) {
+                    int protectorValue = protector.getPieceValue(isMidgame);
+
+                    if (attackerValue < pieceValue) {
+                        // Attacked by a lesser-valued piece
+                        if (attackerValue < protectorValue) {
+                            // Bad trade if attacker is lesser valued than protector
+                            penalty += ((pieceValue - attackerValue) * 3);
+                        } else {
+                            // Moderate penalty if protected by a higher or equal valued piece
+                            penalty += (int) ((pieceValue - attackerValue) * 1.5);
+                        }
+                    } else {
+                        // If attacked by an equal or higher-valued piece
+                        if (!isProtected) {
+                            penalty += (int) (pieceValue * 1.5);
+                        }
+                    }
+                } else {
+                    // If no protector found, apply a high penalty to encourage moving the piece away
+                    penalty += pieceValue * 10;
                 }
             }
         } else if (!isProtected) {
-            penalty = pieceValue * 3;
+            // Do not apply any penalty if the piece is not under attack and not protected
+            penalty = 0;
         }
 
         return -penalty;
     }
 
-    private boolean hasAdequateProtection(int pos, Bitboards bitboards, CurrentPlayer currentPlayer, boolean isMidgame) {
-        Piece protector = bitboards.findLowestValueAttacker(pos, currentPlayer, isMidgame, pos);
-        return protector != null;
+
+    private int calculateAttackValueDifference(int fromSquare, int toSquare, CurrentPlayer currentPlayer, Board board) {
+        Piece movingPiece = board.getBitboard().getPieceBySquare(fromSquare);
+        if (movingPiece == null) {
+            return 0;
+        }
+
+        BitSet attackVectors = AttackVectorsHandler.calculateAttackVectorsForPiece(
+                movingPiece.getPieceType(), toSquare, movingPiece.getPieceColor(), board.getBitboard().getOccupiedSquares());
+
+        int maxAttackValueDifference = 0;
+        for (int attackedSquare = attackVectors.nextSetBit(0); attackedSquare >= 0; attackedSquare = attackVectors.nextSetBit(attackedSquare + 1)) {
+            Piece attackedPiece = board.getBitboard().getPieceBySquare(attackedSquare);
+            if (attackedPiece != null && attackedPiece.getPieceColor() != movingPiece.getPieceColor()) {
+                int attackValueDifference = attackedPiece.getPieceValue(PeSTOEvaluation.isMidgamePhase(board.getBitboard())) -
+                        movingPiece.getPieceValue(PeSTOEvaluation.isMidgamePhase(board.getBitboard()));
+//                System.out.println("Attacked piece: " + attackedPiece + " at square: " + attackedSquare + " with attack value difference: " + attackValueDifference);
+                if (attackValueDifference > maxAttackValueDifference) {
+                    maxAttackValueDifference = attackValueDifference;
+                }
+            }
+        }
+        return maxAttackValueDifference;
     }
+
+
+    private int calculateDefensiveValueDifference(int fromSquare, int toSquare, Board board) {
+        Piece movingPiece = board.getBitboard().getPieceBySquare(fromSquare);
+        if (movingPiece == null) {
+//            System.out.println("No moving piece found at square: " + fromSquare);
+            return 0;
+        }
+//        System.out.println("Moving piece: " + movingPiece + " from square: " + fromSquare + " to square: " + toSquare);
+
+        BitSet defenseVectors = AttackVectorsHandler.calculateAttackVectorsForPiece(
+                movingPiece.getPieceType(), toSquare, movingPiece.getPieceColor(), board.getBitboard().getOccupiedSquares());
+
+        int totalDefenseValue = 0;
+        boolean isMidgame = PeSTOEvaluation.isMidgamePhase(board.getBitboard());
+        for (int defendedSquare = defenseVectors.nextSetBit(0); defendedSquare >= 0; defendedSquare = defenseVectors.nextSetBit(defendedSquare + 1)) {
+            Piece defendedPiece = board.getBitboard().getPieceBySquare(defendedSquare);
+            if (defendedPiece != null && defendedPiece.getPieceColor() == movingPiece.getPieceColor() && defendedSquare != fromSquare) { // Ensure it’s not the moving piece
+                int defendedPieceValue = defendedPiece.getPieceValue(isMidgame) / 2;
+                totalDefenseValue += defendedPieceValue;
+//                System.out.println("Defended piece: " + defendedPiece + " at square: " + defendedSquare + " with defended piece value: " + defendedPieceValue);
+            }
+        }
+//        System.out.println("Total defense value at " + toSquare + ": " + totalDefenseValue);
+        return totalDefenseValue;
+    }
+
+
+
+
+
+
+
+
 
     private boolean isSquareAttackedAndNotProtected(int square, BitSet alliesAttackVectors, BitSet enemiesAttackVectors) {
         return enemiesAttackVectors.get(square) && !alliesAttackVectors.get(square);
+    }
+
+    private boolean hasAdequateProtection(int from, int pos, Bitboards bitboard, CurrentPlayer currentPlayer, boolean isMidgame) {
+        PieceColor currentPlayerColor = currentPlayer == CurrentPlayer.WHITE ? PieceColor.WHITE : PieceColor.BLACK;
+        PieceColor enemyPlayerColor = currentPlayerColor == PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE;
+
+        BitSet alliesAttackVectors = bitboard.getAttackVectorsByColor(currentPlayerColor);
+        BitSet enemiesAttackVectors = bitboard.getAttackVectorsByColor(enemyPlayerColor);
+
+        boolean isProtected = alliesAttackVectors.get(from);
+        boolean isAttacked = enemiesAttackVectors.get(pos);
+//
+//        System.out.println("Position " + pos + " protection check: isProtected = " + isProtected + ", isAttacked = " + isAttacked);
+//        System.out.println("Allies attack vectors: " + alliesAttackVectors);
+//        System.out.println("Enemies attack vectors: " + enemiesAttackVectors);
+
+        //        System.out.println("Has adequate defense: " + hasAdequateDefense);
+        return isProtected && (!isAttacked || calculateDefenseStrength(pos, alliesAttackVectors, enemiesAttackVectors) > 0);
+    }
+
+
+
+    private int calculateDefenseStrength(int pos, BitSet alliesAttackVectors, BitSet enemiesAttackVectors) {
+        int defenseStrength = 0;
+        for (int attacker = enemiesAttackVectors.nextSetBit(0); attacker >= 0; attacker = enemiesAttackVectors.nextSetBit(attacker + 1)) {
+            if (alliesAttackVectors.get(attacker)) {
+                defenseStrength++;
+            }
+        }
+//        System.out.println("Defense strength at position " + pos + ": " + defenseStrength);
+        return defenseStrength;
     }
 
 
@@ -337,14 +467,6 @@ public class MoveGenerator {
 
         return allMovesQueue;
     }
-
-    private int calculatePositionGain(Move move, Board board) {
-        boolean isMidgamePhase = isMidgamePhase(board.getBitboard());
-        return isMidgamePhase ?
-                PSTHandler.getMidGameValue(move.getPiece().getPieceType(), move.getPiece().getPieceColor(), move.getToSquare()) :
-                PSTHandler.getEndgameValue(move.getPiece().getPieceType(), move.getPiece().getPieceColor(), move.getToSquare());
-    }
-
 
 
 }

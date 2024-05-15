@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
@@ -21,7 +22,11 @@ public class Move {
     private boolean isProtected;
     private boolean isAttacked;
     private int attackPenalty;
-    private Piece protectedByPiece; // The piece protecting this move
+    private int isAttackingOtherPiece;
+    private int isDefendingOtherPiece;
+    private boolean isCheck;
+
+
 
     @Override
     public String toString() {
@@ -37,7 +42,9 @@ public class Move {
                 ", isProtected=" + isProtected +
                 ", isAttacked=" + isAttacked +
                 ", attackPenalty=" + attackPenalty +
-                ", protectedByPiece=" + (protectedByPiece != null ? protectedByPiece : "None") +
+                ", isAttackingOtherPiece=" + isAttackingOtherPiece +
+                ", isDefendingOtherPiece=" + isDefendingOtherPiece +
+                ", isCheck=" + isCheck +
                 '}';
     }
 }

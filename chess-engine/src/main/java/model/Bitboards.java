@@ -96,21 +96,21 @@ public class Bitboards {
         /**
          *       H    G    F    E    D    C    B    A
          *    +----+----+----+----+----+----+----+----+
-         *  1 |  7 |  6 |  5 |  4 |  3 |  2 |  1 |  0 |  1st rank
+         *  8 |  7 |  6 |  5 |  4 |  3 |  2 |  1 |  0 |  8st rank
          *    +----+----+----+----+----+----+----+----+
-         *  2 | 15 | 14 | 13 | 12 | 11 | 10 |  9 |  8 |  2nd rank
+         *  7 | 15 | 14 | 13 | 12 | 11 | 10 |  9 |  8 |  7nd rank
          *    +----+----+----+----+----+----+----+----+
-         *  3 | 23 | 22 | 21 | 20 | 19 | 18 | 17 | 16 |  3rd rank
+         *  6 | 23 | 22 | 21 | 20 | 19 | 18 | 17 | 16 |  6rd rank
          *    +----+----+----+----+----+----+----+----+
-         *  4 | 31 | 30 | 29 | 28 | 27 | 26 | 25 | 24 |  4th rank
+         *  5 | 31 | 30 | 29 | 28 | 27 | 26 | 25 | 24 |  5th rank
          *    +----+----+----+----+----+----+----+----+
-         *  5 | 39 | 38 | 37 | 36 | 35 | 34 | 33 | 32 |  5th rank
+         *  4 | 39 | 38 | 37 | 36 | 35 | 34 | 33 | 32 |  4th rank
          *    +----+----+----+----+----+----+----+----+
-         *  6 | 47 | 46 | 45 | 44 | 43 | 42 | 41 | 40 |  6th rank
+         *  3 | 47 | 46 | 45 | 44 | 43 | 42 | 41 | 40 |  3th rank
          *    +----+----+----+----+----+----+----+----+
-         *  7 | 55 | 54 | 53 | 52 | 51 | 50 | 49 | 48 |  7th rank
+         *  2 | 55 | 54 | 53 | 52 | 51 | 50 | 49 | 48 |  2th rank
          *    +----+----+----+----+----+----+----+----+
-         *  8 | 63 | 62 | 61 | 60 | 59 | 58 | 57 | 56 |  8th rank
+         *  1 | 63 | 62 | 61 | 60 | 59 | 58 | 57 | 56 |  1th rank
          *    +----+----+----+----+----+----+----+----+
          *       H    G    F    E    D    C    B    A - file(s)
          *
@@ -223,8 +223,8 @@ public class Bitboards {
     public void printBoardFlipped() {
         System.out.println("       H    G    F    E    D    C    B    A");
         System.out.println("    +----+----+----+----+----+----+----+----+");
-        for (int row = 1; row <= 8; row++) {
-            int start = (row - 1) * 8;
+        for (int row = 8; row >= 1; row--) {
+            int start = (8 - row) * 8; // Adjusting start index for flipped board
             System.out.print("  " + row + " |");
             for (int col = 7; col >= 0; col--) {
                 int index = start + col;
@@ -236,6 +236,7 @@ public class Bitboards {
         }
         System.out.println("       H    G    F    E    D    C    B    A");
     }
+
 
     private char getPieceChar(int index) {
         if (whitePawns.get(index))
@@ -408,11 +409,13 @@ public class Bitboards {
     public synchronized void placePiece(Piece piece, int position) {
         BitSet bitset = getPieceBitboard(piece.getPieceType(), piece.getPieceColor());
         bitset.set(position);
+        updateAttackVectorsForColor(piece.getPieceColor());
     }
 
     public synchronized void clearPiece(PieceType type, PieceColor color, int position) {
         BitSet bitset = getPieceBitboard(type, color);
         bitset.clear(position);
+        updateAttackVectorsForColor(color);
     }
 
     // Get King for player
@@ -562,40 +565,25 @@ public class Bitboards {
         return betweenSquares.isEmpty();
     }
 
-    public Piece findLowestValueAttacker(int square, CurrentPlayer currentPlayer, boolean isMidgamePhase, int excludeSquare) {
+
+    public Piece findLowestValueAttacker(int square, CurrentPlayer currentPlayer, boolean isMidgamePhase) {
         PieceColor attackColor = currentPlayer.getOppositePlayer().equals(CurrentPlayer.WHITE) ? PieceColor.WHITE : PieceColor.BLACK;
         int lowestValue = Integer.MAX_VALUE;
         Piece lowestValueAttacker = null;
 
-
-
+        // Check all piece types from the attacking side
         for (PieceType pieceType : PieceType.values()) {
-            BitSet attackers = (BitSet) getPieceBitboard(pieceType, attackColor).clone();
+            BitSet attackers = (BitSet) getPieceBitboard(pieceType, attackColor).clone();  // Clone the bitset to avoid modifying the original
             BitSet attackVectors = AttackVectorsHandler.calculateAttackVectorsForPiece(pieceType, square, attackColor, getAllPieces());
 
-
-
-            attackers.and(attackVectors);
-            for (int attackerSquare = attackers.nextSetBit(0); attackerSquare >= 0; attackerSquare = attackers.nextSetBit(attackerSquare + 1)) {
-                if (attackerSquare != excludeSquare) {
-                    int pieceValue = isMidgamePhase ? pieceType.getMidGameValue() : pieceType.getEndGameValue();
-
-                    if (pieceType == PieceType.PAWN) {
-                        if ((attackColor == PieceColor.WHITE && (square == attackerSquare - 7 || square == attackerSquare - 9)) ||
-                                (attackColor == PieceColor.BLACK && (square == attackerSquare + 7 || square == attackerSquare + 9))) {
-                            if (pieceValue < lowestValue) {
-                                lowestValue = pieceValue;
-                                lowestValueAttacker = new Piece(pieceType, attackColor, attackerSquare);
-                            }
-                        }
-                    } else {
-                        if (pieceValue < lowestValue) {
-                            lowestValue = pieceValue;
-                            lowestValueAttacker = new Piece(pieceType, attackColor, attackerSquare);
-                        }
-                    }
-
-
+            // Check if any attackers of this type can attack the square
+            attackers.and(attackVectors);  // This now operates on the cloned bitset
+            if (!attackers.isEmpty()) {
+                int attackerSquare = attackers.nextSetBit(0);
+                int pieceValue = isMidgamePhase ? pieceType.getMidGameValue() : pieceType.getEndGameValue();
+                if (pieceValue < lowestValue) {
+                    lowestValue = pieceValue;
+                    lowestValueAttacker = new Piece(pieceType, attackColor, attackerSquare);
                 }
             }
         }
