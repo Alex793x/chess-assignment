@@ -46,11 +46,11 @@ public class Engine {
             if (isWhiteTurn && moveValue > bestValue) {
                 bestValue = moveValue;
                 bestMove = move;
-                alpha = Math.max(alpha, bestValue);
+                alpha = bestValue;
             } else if (!isWhiteTurn && moveValue < bestValue) {
                 bestValue = moveValue;
                 bestMove = move;
-                beta = Math.min(beta, bestValue);
+                beta = bestValue;
             }
 
             if (beta <= alpha) {
@@ -84,11 +84,11 @@ public class Engine {
         boardCopy.undoMove(move);
 
         // Logging for debugging
-//        System.out.println("Evaluating move: " + move);
-//        System.out.println("Move value: " + moveValue + ", Adjusted Move value: " + adjustedMoveValue + ", Board value: " + boardValue + ", Static Board Evaluation: " + staticBoardEvaluation);
-//        System.out.println("Position gain: " + positionGain + ", Attack penalty: " + moveAttackPenalty + ", Protection bonus: " + protectionBonus);
-//        System.out.println("Board Evaluation after move: " + Evaluator.evaluateStaticBoard(boardCopy));
-//        System.out.println("==========================================");
+        System.out.println("Evaluating move: " + move);
+        System.out.println("Move value: " + moveValue + ", Adjusted Move value: " + adjustedMoveValue + ", Board value: " + boardValue + ", Static Board Evaluation: " + staticBoardEvaluation);
+        System.out.println("Position gain: " + positionGain + ", Attack penalty: " + moveAttackPenalty + ", Protection bonus: " + protectionBonus);
+        System.out.println("Board Evaluation after move: " + Evaluator.evaluateStaticBoard(boardCopy));
+        System.out.println("==========================================");
 
         return new MoveEvaluationResult(move, adjustedMoveValue + boardValue);
     }

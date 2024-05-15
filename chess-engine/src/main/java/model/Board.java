@@ -176,7 +176,7 @@ public class Board {
     public static void main(String[] args) {
         Board board = new Board();
         board.getBitboard().setupInitialPositions();
-        board.getBitboard().loadFENFlipped("rn2kb1r/pp3ppp/2p3b1/q2np3/B5PP/2NP1P2/PPP5/R1BQK1NR w KQkq - 0 11");
+        board.getBitboard().loadFENFlipped("rnb1k1nr/pppp1ppp/5q2/4p3/P2b4/2N5/1PPPPPPP/R1BQKB1R w KQkq - 1 5");
         System.out.println(PSTHandler.getMidGameValue(PieceType.KING, PieceColor.BLACK, 4));
         board.getBitboard().printBoardFlipped();
         board.setCurrentPlayer(CurrentPlayer.WHITE);
