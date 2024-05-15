@@ -9,9 +9,10 @@ import model.enums.PieceColor;
 public class Evaluator {
 
     // Define weights for each component of the evaluation
-    private static final double BASE_EVALUATION_WEIGHT = 0.4;
-    private static final double PROTECTION_SCORE_WEIGHT = 10;
+    private static final double BASE_EVALUATION_WEIGHT = 0.5;
+    private static final double PROTECTION_SCORE_WEIGHT = 0.3;
     private static final double MOBILITY_SCORE_WEIGHT = 0.2;
+    private static final double KING_SAFETY_WEIGHT = 0.2;
 
     public static int evaluateStaticBoard(Board board) {
         int baseEvaluation = PeSTOEvaluation.eval(board, board.getBitboard());
@@ -23,11 +24,15 @@ public class Evaluator {
         int mobilityScore = calculateMobilityScore(board.getBitboard());
 //        System.out.println("Mobility Score: " + mobilityScore);
 
+        int kingSafetyScore = calculateKingSafetyScore(board.getBitboard());
+//        System.out.println("King Safety Score: " + kingSafetyScore);
+
         // Calculate the total score using the weights
         double totalScore =
                 (BASE_EVALUATION_WEIGHT * baseEvaluation) +
                         (PROTECTION_SCORE_WEIGHT * protectionScore) +
-                        (MOBILITY_SCORE_WEIGHT * mobilityScore);
+                        (MOBILITY_SCORE_WEIGHT * mobilityScore) +
+                        (KING_SAFETY_WEIGHT * kingSafetyScore);
 
 //        System.out.println("Total Evaluation Score: " + totalScore);
 
@@ -39,5 +44,13 @@ public class Evaluator {
         int blackMobility = bitboards.calculateMobility(PieceColor.BLACK);
 
         return whiteMobility - blackMobility; // Higher mobility for white is positive, for black is negative
+    }
+
+    private static int calculateKingSafetyScore(Bitboards bitboards) {
+        int[] kingSafetyLevels = bitboards.calculateKingSafetyLevels();
+        int whiteKingSafety = kingSafetyLevels[PieceColor.WHITE.ordinal()];
+        int blackKingSafety = kingSafetyLevels[PieceColor.BLACK.ordinal()];
+
+        return whiteKingSafety - blackKingSafety; // Positive if white's king is safer, negative if black's king is safer
     }
 }

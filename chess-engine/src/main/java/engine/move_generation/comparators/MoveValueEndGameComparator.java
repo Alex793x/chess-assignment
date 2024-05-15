@@ -1,7 +1,6 @@
 package engine.move_generation.comparators;
 
 import model.Move;
-
 import java.util.Comparator;
 
 public class MoveValueEndGameComparator implements Comparator<Move> {
@@ -20,15 +19,10 @@ public class MoveValueEndGameComparator implements Comparator<Move> {
 
         int positionalValue = move.getPositionGain();
 
-        int protectionBonus = move.isProtected()
-                ? 500
-                : 0;
+        int protectionBonus = move.isProtected() ? 500 : 0;
 
-        int attackPenalty = move.isAttacked()
-                ? -move.getAttackPenalty()
-                : 0;
+        int attackPenalty = move.isAttacked() ? -move.getAttackPenalty() : 0;
 
         return captureValue + positionalValue + protectionBonus + attackPenalty;
     }
 }
-

@@ -5,7 +5,6 @@ import model.Move;
 import java.util.Comparator;
 
 public class MoveValueMidGameComparator implements Comparator<Move> {
-    @Override
     public int compare(Move m1, Move m2) {
         int m1Value = calculateMoveValue(m1);
         int m2Value = calculateMoveValue(m2);
@@ -15,18 +14,14 @@ public class MoveValueMidGameComparator implements Comparator<Move> {
 
     public static int calculateMoveValue(Move move) {
         int captureValue = (move.getCapturedPiece() != null)
-                ? move.getCapturedPiece().getPieceValue(true)   // Give a higher weight to captures
+                ? move.getCapturedPiece().getPieceValue(true) * 5  // Give a higher weight to captures
                 : 0;
 
         int positionalValue = move.getPositionGain();
 
-        int protectionBonus = move.isProtected()
-                ? 500
-                : 0;
+        int protectionBonus = move.isProtected() ? 500 : 0;
 
-        int attackPenalty = move.isAttacked()
-                ? -move.getAttackPenalty()
-                : 0;
+        int attackPenalty = move.isAttacked() ? -move.getAttackPenalty() : 0;
 
         return captureValue + positionalValue + protectionBonus + attackPenalty;
     }

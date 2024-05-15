@@ -562,30 +562,52 @@ public class Bitboards {
         return betweenSquares.isEmpty();
     }
 
-    public Piece findLowestValueAttacker(int square, CurrentPlayer currentPlayer, boolean isMidgamePhase) {
+    public Piece findLowestValueAttacker(int square, CurrentPlayer currentPlayer, boolean isMidgamePhase, int excludeSquare) {
         PieceColor attackColor = currentPlayer.getOppositePlayer().equals(CurrentPlayer.WHITE) ? PieceColor.WHITE : PieceColor.BLACK;
         int lowestValue = Integer.MAX_VALUE;
         Piece lowestValueAttacker = null;
 
-        // Check all piece types from the attacking side
+
+
         for (PieceType pieceType : PieceType.values()) {
-            BitSet attackers = (BitSet) getPieceBitboard(pieceType, attackColor).clone();  // Clone the bitset to avoid modifying the original
+            BitSet attackers = (BitSet) getPieceBitboard(pieceType, attackColor).clone();
             BitSet attackVectors = AttackVectorsHandler.calculateAttackVectorsForPiece(pieceType, square, attackColor, getAllPieces());
 
-            // Check if any attackers of this type can attack the square
-            attackers.and(attackVectors);  // This now operates on the cloned bitset
-            if (!attackers.isEmpty()) {
-                int attackerSquare = attackers.nextSetBit(0);
-                int pieceValue = isMidgamePhase ? pieceType.getMidGameValue() : pieceType.getEndGameValue();
-                if (pieceValue < lowestValue) {
-                    lowestValue = pieceValue;
-                    lowestValueAttacker = new Piece(pieceType, attackColor, attackerSquare);
+
+
+            attackers.and(attackVectors);
+            for (int attackerSquare = attackers.nextSetBit(0); attackerSquare >= 0; attackerSquare = attackers.nextSetBit(attackerSquare + 1)) {
+                if (attackerSquare != excludeSquare) {
+                    int pieceValue = isMidgamePhase ? pieceType.getMidGameValue() : pieceType.getEndGameValue();
+
+                    if (pieceType == PieceType.PAWN) {
+                        if ((attackColor == PieceColor.WHITE && (square == attackerSquare - 7 || square == attackerSquare - 9)) ||
+                                (attackColor == PieceColor.BLACK && (square == attackerSquare + 7 || square == attackerSquare + 9))) {
+                            if (pieceValue < lowestValue) {
+                                lowestValue = pieceValue;
+                                lowestValueAttacker = new Piece(pieceType, attackColor, attackerSquare);
+                            }
+                        }
+                    } else {
+                        if (pieceValue < lowestValue) {
+                            lowestValue = pieceValue;
+                            lowestValueAttacker = new Piece(pieceType, attackColor, attackerSquare);
+                        }
+                    }
+
+
                 }
             }
         }
 
         return lowestValueAttacker;
     }
+
+
+
+
+
+
 
 
     public int[] calculateProtectionLevels() {
@@ -623,5 +645,62 @@ public class Bitboards {
 
         return mobility;
     }
+
+
+
+
+    public int[] calculateKingSafetyLevels() {
+        int[] kingSafetyLevels = new int[2]; // 0 for white, 1 for black
+
+        // Calculate safety levels for each king
+        kingSafetyLevels[PieceColor.WHITE.ordinal()] = calculateSafetyForKing(PieceColor.WHITE);
+        kingSafetyLevels[PieceColor.BLACK.ordinal()] = calculateSafetyForKing(PieceColor.BLACK);
+
+        return kingSafetyLevels;
+    }
+
+    // Helper method to calculate safety for a king of a given color
+    private int calculateSafetyForKing(PieceColor color) {
+        int kingIndex = (color == PieceColor.WHITE) ? whiteKing.nextSetBit(0) : blackKing.nextSetBit(0);
+        BitSet kingSurroundingSquares = getSurroundingSquares(kingIndex);
+        BitSet opponentAttackVectors = (color == PieceColor.WHITE) ? blackAttackVectors : whiteAttackVectors;
+
+        int attackersCount = 0;
+        for (int i = kingSurroundingSquares.nextSetBit(0); i >= 0; i = kingSurroundingSquares.nextSetBit(i + 1)) {
+            if (opponentAttackVectors.get(i)) {
+                attackersCount++;
+            }
+        }
+
+        // Calculate the safety score based on the number of attackers
+        return evaluateKingSafety(attackersCount);
+    }
+
+    // Helper method to get the squares surrounding the king
+    private BitSet getSurroundingSquares(int kingIndex) {
+        BitSet surroundingSquares = new BitSet(64);
+
+        // Directions around the king
+        int[] directions = {-9, -8, -7, -1, 1, 7, 8, 9};
+
+        for (int dir : directions) {
+            int neighborIndex = kingIndex + dir;
+            if (neighborIndex >= 0 && neighborIndex < 64) {
+                surroundingSquares.set(neighborIndex);
+            }
+        }
+
+        return surroundingSquares;
+    }
+
+    // Helper method to evaluate king safety based on the number of attackers
+    private int evaluateKingSafety(int attackersCount) {
+        // Safety evaluation table (example values, adjust based on testing and needs)
+        int[] safetyTable = {0, 1, 3, 5, 10, 15, 22, 30, 39, 50};
+
+        // Return a capped value if attackersCount exceeds the table size
+        return (attackersCount < safetyTable.length) ? safetyTable[attackersCount] : safetyTable[safetyTable.length - 1];
+    }
+
 
 }

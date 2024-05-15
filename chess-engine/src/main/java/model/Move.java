@@ -21,6 +21,7 @@ public class Move {
     private boolean isProtected;
     private boolean isAttacked;
     private int attackPenalty;
+    private Piece protectedByPiece; // The piece protecting this move
 
     @Override
     public String toString() {
@@ -36,6 +37,7 @@ public class Move {
                 ", isProtected=" + isProtected +
                 ", isAttacked=" + isAttacked +
                 ", attackPenalty=" + attackPenalty +
+                ", protectedByPiece=" + (protectedByPiece != null ? protectedByPiece : "None") +
                 '}';
     }
 }
