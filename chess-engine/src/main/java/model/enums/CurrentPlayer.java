@@ -8,4 +8,8 @@ public enum CurrentPlayer {
     public CurrentPlayer getOppositePlayer() {
         return this == WHITE ? BLACK : WHITE;
     }
+
+    public PieceColor getPieceColor() {
+        return this == WHITE ? PieceColor.WHITE : PieceColor.BLACK;
+    }
 }

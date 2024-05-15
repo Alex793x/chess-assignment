@@ -45,14 +45,20 @@ public class Engine {
             totalNodesPossibilities++;
             int moveValue = evaluateMove(move, alpha, beta, board, searchDepth, isWhiteTurn).value;
 
+//            System.out.println("Evaluating move: " + move);
+//            System.out.println("Move value: " + moveValue);
+//            System.out.println("Alpha: " + alpha + " Beta: " + beta);
+
             if (isWhiteTurn && moveValue > bestValue) {
                 bestValue = moveValue;
                 bestMove = move;
                 alpha = bestValue;
+                System.out.println("New best move found for White: " + bestMove + " with value: " + bestValue);
             } else if (!isWhiteTurn && moveValue < bestValue) {
                 bestValue = moveValue;
                 bestMove = move;
                 beta = bestValue;
+                System.out.println("New best move found for Black: " + bestMove + " with value: " + bestValue);
             }
 
             if (beta <= alpha) {
@@ -62,6 +68,8 @@ public class Engine {
 
         System.out.println("TOTAL NODES EVALUATED: " + totalNodesEvaluated);
         System.out.println("TOTAL NODES POSSIBILITIES: " + totalNodesPossibilities);
+        System.out.println("Best Move Selected: " + bestMove + " with value: " + bestValue);
+
         return bestMove;
     }
 
@@ -95,7 +103,6 @@ public class Engine {
         // Special handling for game-over situations
         int gameOverBonus = 0;
         if (capturedPiece != null && capturedPiece.getPieceType().equals(PieceType.KING)) {
-            System.out.println("KING CAUGHT");
             gameOverBonus = isWhiteTurn ? Integer.MAX_VALUE : Integer.MIN_VALUE;
         }
 
@@ -109,11 +116,11 @@ public class Engine {
         int totalValue = moveValue + boardValue;
 
         // Logging for debugging
-        System.out.println("Evaluating move: " + move);
-        System.out.println("Move value: " + moveValue + ", Board value: " + boardValue);
-        System.out.println("Position gain: " + positionGain + ", Attack penalty: " + moveAttackPenalty + ", Protection bonus: " + protectionBonus);
-        System.out.println("Static Board Evaluation after move: " + staticBoardEvaluationAfter);
-        System.out.println("==========================================");
+//        System.out.println("Evaluating move: " + move);
+//        System.out.println("Move value: " + moveValue + ", Board value: " + boardValue);
+//        System.out.println("Position gain: " + positionGain + ", Attack penalty: " + moveAttackPenalty + ", Protection bonus: " + protectionBonus);
+//        System.out.println("Static Board Evaluation after move: " + staticBoardEvaluationAfter);
+//        System.out.println("==========================================");
 
         return new MoveEvaluationResult(move, totalValue);
     }

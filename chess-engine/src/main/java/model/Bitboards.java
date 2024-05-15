@@ -221,7 +221,7 @@ public class Bitboards {
     }
 
     public void printBoardFlipped() {
-        System.out.println("       H    G    F    E    D    C    B    A");
+        System.out.println("       A    B    C    D    E    F    G    H");
         System.out.println("    +----+----+----+----+----+----+----+----+");
         for (int row = 8; row >= 1; row--) {
             int start = (8 - row) * 8; // Adjusting start index for flipped board
@@ -234,7 +234,7 @@ public class Bitboards {
             System.out.println("  " + row + "th rank");
             System.out.println("    +----+----+----+----+----+----+----+----+");
         }
-        System.out.println("       H    G    F    E    D    C    B    A");
+        System.out.println("       A    B    C    D    E    F    G    H");
     }
 
 

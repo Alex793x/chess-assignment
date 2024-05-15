@@ -3,7 +3,6 @@ package model;
 import engine.Engine;
 import engine.evaluations.Evaluator;
 import engine.move_generation.MoveGenerator;
-import engine.move_generation.model.MoveResult;
 import lombok.Getter;
 import lombok.Setter;
 import model.enums.CurrentPlayer;
@@ -11,8 +10,7 @@ import model.enums.PieceColor;
 import model.enums.PieceType;
 import util.pst.PSTHandler;
 
-import java.util.BitSet;
-import java.util.Random;
+import java.util.*;
 
 @Getter
 @Setter
@@ -142,7 +140,6 @@ public class Board {
     }
 
 
-
     public long getHash() {
         long hash = 0L;
         // XOR all bitboards to combine their hashes
@@ -173,18 +170,126 @@ public class Board {
         return value;
     }
 
-    public static void main(String[] args) {
-        Board board = new Board();
-        board.getBitboard().setupInitialPositions();
-        board.getBitboard().loadFENFlipped("rnb1k1nr/pppp1ppp/8/4pq2/P2bN3/8/1PPPPPPP/R1BQKB1R w Kkq - 2 7");
-        System.out.println(PSTHandler.getMidGameValue(PieceType.KING, PieceColor.BLACK, 4));
-        board.getBitboard().printBoardFlipped();
-        board.setCurrentPlayer(CurrentPlayer.WHITE);
-        Engine engine = new Engine(6);
-        System.out.println(Evaluator.evaluateStaticBoard(board));
-        System.out.println(engine.findBestMove(board, true));
-        board.getBitboard().printNumberPositionFlipped();
-        board.getBitboard().printBoardFlipped();
+
+    // Method converts the fromSquare and toSquare to a move string, that can be used
+    // when a player writes the move prompt in the terminal
+    private static Move parseMove(String moveInput, Board board, boolean isBoardFlipped) {
+        String[] parts = moveInput.split(" ");
+        if (parts.length != 2) {
+            return null;
+        }
+
+        int fromSquare = convertSquare(parts[0], isBoardFlipped);
+        int toSquare = convertSquare(parts[1], isBoardFlipped);
+        if (fromSquare == -1 || toSquare == -1) {
+            return null;
+        }
+
+        Piece piece = board.getBitboard().getPieceBySquare(fromSquare);
+        if (piece == null || piece.getPieceColor() != board.currentPlayer.getPieceColor()) {
+            System.out.println("Invalid piece selection.");
+        }
+
+        boolean isCapture = board.getBitboard().getPieceBySquare(toSquare) != null;
+        Piece capturedPiece = isCapture ? board.getBitboard().getPieceBySquare(toSquare) : null;
+
+        return new Move(fromSquare, toSquare, 0, piece, capturedPiece, isCapture, false, board.getHalfMoveClock(), false, false, 0, 0, 0, false);
     }
 
-}
+    private static int convertSquare(String square, boolean isBoardFlipped) {
+        if (square.length() != 2) {
+            return -1;
+        }
+
+        char file = square.charAt(0);
+        char rank = square.charAt(1);
+
+        int fileIndex = file - 'a';
+        int rankIndex = rank - '1';
+
+        if (fileIndex < 0 || fileIndex > 7 || rankIndex < 0 || rankIndex > 7) {
+            return -1;
+        }
+
+        if (isBoardFlipped) {
+            fileIndex = 7 - fileIndex;
+            rankIndex = 7 - rankIndex;
+        }
+
+        return rankIndex * 8 + fileIndex;
+    }
+
+    // This method is only used in the gameloop to validate the player move. It is not used for the AI moves.
+    private static boolean isValidPlayerMove(Move move, Board board, MoveGenerator moveGenerator) {
+        PriorityQueue<Move> validMoves = moveGenerator.generateAllMoves(board);
+        for (Move validMove : validMoves) {
+            if (validMove.getFromSquare() == move.getFromSquare() && validMove.getToSquare() == move.getToSquare()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        Board board = new Board();
+        MoveGenerator moveGenerator = new MoveGenerator();
+        Engine engine = new Engine(4);
+
+        System.out.println("================::CHESS GAME::===========================");
+        System.out.println("Choose to play as White or Black: \nFor White = w, For Black = b");
+        String choice = scanner.nextLine().toLowerCase();
+
+        boolean isPlayerWhite;
+        if (choice.equals("w")) {
+            isPlayerWhite = true;
+            board.setCurrentPlayer(CurrentPlayer.WHITE);
+            System.out.println("You have chosen to play as White. Make the first move.");
+        } else if (choice.equals("b")) {
+            isPlayerWhite = false;
+            board.setCurrentPlayer(CurrentPlayer.WHITE);  // Game always starts with White
+            System.out.println("You have chosen to play as Black. Wait for White to make the first move.");
+        } else {
+            System.out.println("Invalid choice, please restart the game and choose again.");
+            return;
+        }
+
+        board.getBitboard().setupInitialPositions();
+        board.getBitboard().printBoardFlipped();
+
+        while (!board.isGameOver()) {
+            if ((board.getCurrentPlayer() == CurrentPlayer.WHITE && isPlayerWhite) ||
+                    (board.getCurrentPlayer() == CurrentPlayer.BLACK && !isPlayerWhite)) {
+                // -------------------- PLAYER MOVE ---------------------
+                System.out.println("Enter your move (e.g., e2 e4): ");
+                String moveInput = scanner.nextLine();
+                if (moveInput.equalsIgnoreCase("exit")) {
+                    break;
+                }
+
+                Move playerMove = parseMove(moveInput, board, true);
+                if (playerMove != null && isValidPlayerMove(playerMove, board, moveGenerator)) {
+                    board.makeMove(playerMove);
+                    System.out.println("Player's move: " + playerMove);
+                    board.getBitboard().printBoardFlipped();
+                } else {
+                    System.out.println("Invalid move, please try again.");
+
+                }
+            } else {
+                // --------------- COMPUTER MOVE --------------------
+                Move engineMove = engine.findBestMove(board, board.getCurrentPlayer() == CurrentPlayer.WHITE);
+                if (engineMove != null) {
+                    board.makeMove(engineMove);
+                    System.out.println("Engine move: " + engineMove);
+                    board.getBitboard().printBoardFlipped();
+                }
+            }
+
+        }
+
+        scanner.close();
+    }
+
+    }
