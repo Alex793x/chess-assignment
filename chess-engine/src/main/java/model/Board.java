@@ -181,10 +181,10 @@ public class Board {
         board.getBitboard().printBoardFlipped();
         board.setCurrentPlayer(CurrentPlayer.WHITE);
         Engine engine = new Engine(6);
-        board.getBitboard().printNumberPosition();
-        board.getBitboard().printBoard();
         System.out.println(Evaluator.evaluateStaticBoard(board));
         System.out.println(engine.findBestMove(board, true));
+        board.getBitboard().printNumberPosition();
+        board.getBitboard().printBoard();
     }
 
 }

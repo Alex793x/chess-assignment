@@ -13,6 +13,7 @@ import util.pst.PSTHandler;
 
 import java.util.*;
 
+import static engine.evaluations.material_board.PeSTOEvaluation.isMidgamePhase;
 import static util.precompuation.PreComputedData.getBishopAttacks;
 import static util.precompuation.PreComputedData.getQueenAttacks;
 
@@ -89,15 +90,10 @@ public class MoveGenerator {
                         }
 
                         Piece capturedPiece = isCapture ? bitboard.getPieceBySquare(pos) : null;
-                        int positionalPSTValue = isMidgame
-                                ? PSTHandler.getMidGameValue(piece.getPieceType(), piece.getPieceColor(), pos)
-                                : PSTHandler.getEndgameValue(piece.getPieceType(), piece.getPieceColor(), pos);
-                        int attackPenalty = calculateAttackPenalty(piece, isProtected, pos, enemiesAttackVectors, bitboard, currentPlayer, isMidgame);
-
                         Move move = new Move(
                                 pawnSquare,
                                 pos,
-                                isPromotion ? 1000 : positionalPSTValue,
+                                0,
                                 piece,
                                 capturedPiece,
                                 isCapture,
@@ -105,9 +101,10 @@ public class MoveGenerator {
                                 board.getHalfMoveClock(),
                                 isProtected,
                                 isAttacked,
-                                attackPenalty,
+                                0,
                                 protectedByPiece
                         );
+                        move.setPositionGain(calculatePositionGain(move, board));
 
                         if (isMoveLegal(move, board)) {
                             if (isPromotion) {
@@ -128,6 +125,7 @@ public class MoveGenerator {
 
         return moveResult;
     }
+
 
     private MoveResult generateMoves(int square, BitSet pieceAttacks, Board board) {
         boolean isMidgame = PeSTOEvaluation.isMidgamePhase(board.getBitboard());
@@ -151,10 +149,7 @@ public class MoveGenerator {
                 }
                 Piece capturedPiece = enemies.get(pos) ? bitboard.getPieceBySquare(pos) : null;
                 boolean isCapture = enemies.get(pos);
-                int positionalPSTValue = isMidgame
-                        ? PSTHandler.getMidGameValue(piece.getPieceType(), piece.getPieceColor(), pos)
-                        : PSTHandler.getEndgameValue(piece.getPieceType(), piece.getPieceColor(), pos);
-                boolean isProtected = hasAdequateProtection(square, bitboard, currentPlayer.getOppositePlayer(), isMidgame);
+                boolean isProtected = hasAdequateProtection(pos, bitboard, currentPlayer.getOppositePlayer(), isMidgame);
                 boolean isAttacked = enemiesAttackVectors.get(pos);
                 Piece protectedByPiece = bitboard.findLowestValueAttacker(pos, currentPlayer.getOppositePlayer(), isMidgame, square);
                 int attackPenalty = calculateAttackPenalty(piece, isProtected, pos, enemiesAttackVectors, bitboard, currentPlayer, isMidgame);
@@ -163,7 +158,7 @@ public class MoveGenerator {
                     Move move = new Move(
                             square,
                             pos,
-                            positionalPSTValue,
+                            0,
                             piece,
                             capturedPiece,
                             isCapture,
@@ -174,6 +169,7 @@ public class MoveGenerator {
                             attackPenalty,
                             protectedByPiece
                     );
+                    move.setPositionGain(calculatePositionGain(move, board));
 
                     if (isMoveLegal(move, board)) {
                         if (capturedPiece != null) {
@@ -192,6 +188,7 @@ public class MoveGenerator {
 
         return moveResult;
     }
+
 
 
     public boolean isMoveLegal(Move move, Board board) {
@@ -252,7 +249,7 @@ public class MoveGenerator {
 
                     Piece king = bitboard.getPieceBySquare(kingSquare);
                     if (king != null && king.getPieceType() == PieceType.KING) {
-                        Move kingsideCastling = new Move(kingSquare, kingSquare + 2, 0, king, null, false, false, board.getHalfMoveClock(), true, false, 0, null);
+                        Move kingsideCastling = new Move(kingSquare, kingSquare + 2, 500, king, null, false, false, board.getHalfMoveClock(), true, false, 0, null);
                         castlingMoves.add(kingsideCastling);
                     }
                 }
@@ -267,7 +264,7 @@ public class MoveGenerator {
 
                     Piece king = bitboard.getPieceBySquare(kingSquare);
                     if (king != null && king.getPieceType() == PieceType.KING) {
-                        Move queensideCastling = new Move(kingSquare, kingSquare - 2, 0, king, null, false, false, board.getHalfMoveClock(), true, false, 0, null);
+                        Move queensideCastling = new Move(kingSquare, kingSquare - 2, 500, king, null, false, false, board.getHalfMoveClock(), true, false, 0, null);
                         castlingMoves.add(queensideCastling);
                     }
                 }
@@ -340,6 +337,14 @@ public class MoveGenerator {
 
         return allMovesQueue;
     }
+
+    private int calculatePositionGain(Move move, Board board) {
+        boolean isMidgamePhase = isMidgamePhase(board.getBitboard());
+        return isMidgamePhase ?
+                PSTHandler.getMidGameValue(move.getPiece().getPieceType(), move.getPiece().getPieceColor(), move.getToSquare()) :
+                PSTHandler.getEndgameValue(move.getPiece().getPieceType(), move.getPiece().getPieceColor(), move.getToSquare());
+    }
+
 
 
 }

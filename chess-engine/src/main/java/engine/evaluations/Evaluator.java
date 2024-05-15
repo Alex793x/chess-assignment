@@ -4,7 +4,12 @@ import engine.evaluations.material_board.PeSTOEvaluation;
 import engine.evaluations.protection_board.ProtectionEvaluator;
 import model.Bitboards;
 import model.Board;
+import model.Move;
 import model.enums.PieceColor;
+import model.enums.PieceType;
+import util.pst.PSTHandler;
+
+import static engine.evaluations.material_board.PeSTOEvaluation.isMidgamePhase;
 
 public class Evaluator {
 
@@ -53,4 +58,7 @@ public class Evaluator {
 
         return whiteKingSafety - blackKingSafety; // Positive if white's king is safer, negative if black's king is safer
     }
+
+
+
 }

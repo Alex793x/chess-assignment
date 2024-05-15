@@ -13,17 +13,20 @@ public class MoveValueMidGameComparator implements Comparator<Move> {
     }
 
     public static int calculateMoveValue(Move move) {
-        int captureValue = (move.getCapturedPiece() != null)
-                ? move.getCapturedPiece().getPieceValue(true) * 5  // Give a higher weight to captures
-                : 0;
+        int captureValue = 0;
+        if (move.getCapturedPiece() != null) {
+            // MVV-LVA (Most Valuable Victim - Least Valuable Attacker)
+            int capturedValue = move.getCapturedPiece().getPieceValue(false);
+            int attackerValue = move.getPiece().getPieceValue(false);
+            captureValue = capturedValue * 10 - attackerValue; // Higher weight to more valuable captures
+        }
 
         int positionalValue = move.getPositionGain();
-
         int protectionBonus = move.isProtected() ? 500 : 0;
-
         int attackPenalty = move.isAttacked() ? -move.getAttackPenalty() : 0;
 
         return captureValue + positionalValue + protectionBonus + attackPenalty;
     }
+
 }
 
