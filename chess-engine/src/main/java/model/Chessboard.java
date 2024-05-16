@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Scanner;
+
 
 @Getter
 @Setter
@@ -17,15 +19,26 @@ public class Chessboard {
 
     public void initilizeBoard() {
 
+//        this.board = new char[][] {
+//                {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+//                {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+//                {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
+//                {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+//        };
+
         this.board = new char[][] {
-                {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
-                {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
+                {'k', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
                 {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
                 {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
                 {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
                 {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-                {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
-                {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
+                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {' ', 'p', ' ', ' ', ' ', ' ', ' ', ' '},
+                {' ', ' ', ' ', ' ', 'K', ' ', ' ', ' '}
         };
     }
 
@@ -61,11 +74,42 @@ public class Chessboard {
         hash ^= ZobristHashing.getPieceHash(toNum, toChar, board[toNum][toChar]);
         hash ^= ZobristHashing.getPieceHash(toNum, toChar, piece);
 
+        // Handle pawn promotion
+        if (piece == 'P' && toNum == 0) {
+            if (isWhiteTurn) {
+                piece = handlePromotion(isWhiteTurn);
+            } else {
+                piece = 'Q'; // Computer promotes to Queen by default
+            }
+        } else if (piece == 'p' && toNum == 7) {
+            if (!isWhiteTurn) {
+                piece = handlePromotion(isWhiteTurn);
+            } else {
+                piece = 'q'; // Computer promotes to Queen by default
+            }
+        }
+
         // Move the piece
         board[fromNum][fromChar] = ' ';
         board[toNum][toChar] = piece;
 
         return true;
+    }
+
+    private char handlePromotion(boolean isWhiteTurn) {
+        Scanner scanner = new Scanner(System.in);
+        char piece;
+        while (true) {
+            System.out.println("Pawn promotion! Choose piece to promote to (Q, R, B, N): ");
+            String input = scanner.nextLine().toUpperCase();
+            if (input.length() == 1 && "QRBN".contains(input)) {
+                piece = input.charAt(0);
+                break;
+            } else {
+                System.out.println("Invalid input. Please enter Q, R, B, or N.");
+            }
+        }
+        return isWhiteTurn ? piece : Character.toLowerCase(piece);
     }
 
 

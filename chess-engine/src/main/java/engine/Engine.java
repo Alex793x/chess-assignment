@@ -25,7 +25,7 @@ public class Engine {
     private final Map<Long, TranspositionTableEntry> transpositionTable = new ConcurrentHashMap<>();
 
     public char[][] board;
-    public int maxDepth = 6;
+    public int maxDepth;
 
     public MoveEvaluationResult minimax(int depth, int alpha, int beta, boolean maximizingPlayer) {
         long zobristHash = computeZobristHash();
@@ -128,6 +128,10 @@ public class Engine {
         // Update the board with the move
         board[newSpace[0]][newSpace[1]] = piece;
         board[oldSpace[0]][oldSpace[1]] = ' ';
+
+        if (move.isPromotion) {
+            MoveGenerator.pawnPromotionFlag = false;
+        }
     }
 
     private void undoMove(Move move) {

@@ -15,6 +15,7 @@ public class Move {
     public int[] destinationPosition;
     public char piece;
     public char capturedPiece = '\u0000';
+    public boolean isPromotion = false;
 
     @Override
     public String toString() {

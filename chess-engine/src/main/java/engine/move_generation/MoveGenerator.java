@@ -6,8 +6,12 @@ import model.MoveResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class MoveGenerator {
+
+    public static boolean pawnPromotionFlag = false;
+    private static int[] promotionPosition = new int[2];
 
     public synchronized static MoveResult generatePossibleMoves(boolean isWhite, char[][] board) {
         MoveResult moveResult = new MoveResult(new MoveValueComparator());
@@ -60,10 +64,22 @@ public class MoveGenerator {
         return move;
     }
 
+    private static Move newPossiblePromotionMove(int lastRankPosition, int lastFilePosition, int newRankPosition, int newFilePosition, char promotionPiece) {
+        Move move = new Move();
+        move.destinationPosition = new int[]{lastRankPosition, lastFilePosition};
+        move.sourcePosition = new int[]{newRankPosition, newFilePosition};
+        move.piece = promotionPiece;
+        move.isPromotion = true;
+        return move;
+    }
+
     public static List<Move> generateWhitePawnsMove(int rank, int file, char[][] board) {
         List<Move> possiblePawnMoves = new ArrayList<>();
         if (rank == 0) { // Promotion
-            possiblePawnMoves.add(newPossibleMove(rank, file, rank, file, board));
+            possiblePawnMoves.addAll(generatePromotionMoves(rank, file, true));
+            MoveGenerator.pawnPromotionFlag = true;
+            promotionPosition[0] = rank;
+            promotionPosition[1] = file;
         } else {
             if (rank > 0 && board[rank - 1][file] == ' ') {
                 possiblePawnMoves.add(newPossibleMove(rank, file, rank - 1, file, board));
@@ -88,10 +104,13 @@ public class MoveGenerator {
     public static List<Move> generateBlackPawnsMove(int rank, int file, char[][] board) {
         List<Move> possiblePawnMoves = new ArrayList<>();
         if (rank == 7) { // Promotion
-            possiblePawnMoves.add(newPossibleMove(rank, file, rank, file, board));
+            possiblePawnMoves.addAll(generatePromotionMoves(rank, file, false));
+            MoveGenerator.pawnPromotionFlag = true;
+            promotionPosition[0] = rank;
+            promotionPosition[1] = file;
         } else {
             if (rank < 7 && board[rank + 1][file] == ' ') {
-                possiblePawnMoves.add(newPossibleMove(rank, file, rank + 1, file,  board));
+                possiblePawnMoves.add(newPossibleMove(rank, file, rank + 1, file, board));
             }
 
             if (rank == 1 && board[rank + 2][file] == ' ' && board[rank + 1][file] == ' ') {
@@ -107,6 +126,15 @@ public class MoveGenerator {
             }
         }
         return possiblePawnMoves;
+    }
+
+    private static List<Move> generatePromotionMoves(int rank, int file, boolean isWhite) {
+        List<Move> promotionMoves = new ArrayList<>();
+        char[] promotionPieces = isWhite ? new char[]{'Q', 'R', 'B', 'N'} : new char[]{'q', 'r', 'b', 'n'};
+        for (char promotionPiece : promotionPieces) {
+            promotionMoves.add(newPossiblePromotionMove(rank, file, rank, file, promotionPiece));
+        }
+        return promotionMoves;
     }
 
     public static List<Move> generateKnightMoves(int rank, int file, boolean isWhite, char[][] board) {
@@ -227,5 +255,22 @@ public class MoveGenerator {
         }
 
         return possibleMoves;
+    }
+
+    public static void handlePawnPromotion(char[][] board, boolean isWhite, Scanner scanner) {
+        System.out.println("Pawn promotion! Choose piece to promote to (Q, R, B, N): ");
+        char choice = scanner.nextLine().toUpperCase().charAt(0);
+
+        char newPiece = switch (choice) {
+            case 'R' -> isWhite ? 'R' : 'r';
+            case 'B' -> isWhite ? 'B' : 'b';
+            case 'N' -> isWhite ? 'N' : 'n';
+            default -> isWhite ? 'Q' : 'q';
+        };
+
+        int rank = promotionPosition[0];
+        int file = promotionPosition[1];
+        board[rank][file] = newPiece;
+        pawnPromotionFlag = false;
     }
 }

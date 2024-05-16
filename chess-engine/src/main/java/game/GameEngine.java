@@ -1,6 +1,7 @@
 package game;
 
 import engine.Engine;
+import engine.move_generation.MoveGenerator;
 import lombok.NoArgsConstructor;
 import model.Chessboard;
 
@@ -26,18 +27,18 @@ public final class GameEngine {
 
     private static String getPieceSymbol(char piece) {
         return switch (piece) {
-            case 'r' -> "♜";
-            case 'n' -> "♞";
-            case 'b' -> "♝";
-            case 'q' -> "♛";
-            case 'k' -> "♚";
-            case 'p' -> "♟";
-            case 'R' -> "♖";
-            case 'N' -> "♘";
-            case 'B' -> "♗";
-            case 'Q' -> "♕";
-            case 'K' -> "♔";
-            case 'P' -> "♙";
+            case 'r' -> "r";
+            case 'n' -> "n";
+            case 'b' -> "b";
+            case 'q' -> "q";
+            case 'k' -> "k";
+            case 'p' -> "p";
+            case 'R' -> "R";
+            case 'N' -> "N";
+            case 'B' -> "B";
+            case 'Q' -> "Q";
+            case 'K' -> "K";
+            case 'P' -> "P";
             default -> " ";
         };
     }
@@ -58,6 +59,7 @@ public final class GameEngine {
 
             if (isWhiteSide) {
                 exit = playerTurn(scanner, chessboard, true);
+                printBoard(chessboard.getBoard());
                 if (!exit) {
                     computerTurn(chessboard, false);
                 }
@@ -104,6 +106,11 @@ public final class GameEngine {
                 System.out.println("The move you entered is invalid. Please enter a valid move in the correct format:");
             }
         }
+
+        // Handle promotion after a valid move
+        if (MoveGenerator.pawnPromotionFlag) {
+            MoveGenerator.handlePawnPromotion(chessboard.getBoard(), isWhiteTurn, scanner);
+        }
         return exit;
     }
 
@@ -114,5 +121,14 @@ public final class GameEngine {
         chessboard.setBoard(engine.bestMove(isWhiteTurn));
         System.out.println("The computer has completed its move, board updated: ");
         printBoard(chessboard.getBoard());
+        // Handle promotion after a valid move
+        if (MoveGenerator.pawnPromotionFlag) {
+            resetPawnPromotionFlag();
+        }
     }
+
+    private static void resetPawnPromotionFlag() {
+        MoveGenerator.pawnPromotionFlag = false;
+    }
+
 }
