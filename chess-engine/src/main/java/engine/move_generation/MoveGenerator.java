@@ -11,7 +11,7 @@ import java.util.Scanner;
 public class MoveGenerator {
 
     public static boolean pawnPromotionFlag = false;
-    private static int[] promotionPosition = new int[2];
+    private static final int[] promotionPosition = new int[2];
 
     public synchronized static MoveResult generatePossibleMoves(boolean isWhite, char[][] board) {
         MoveResult moveResult = new MoveResult(new MoveValueComparator());

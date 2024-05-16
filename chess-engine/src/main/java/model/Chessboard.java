@@ -19,27 +19,27 @@ public class Chessboard {
 
     public void initilizeBoard() {
 
-//        this.board = new char[][] {
-//                {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
-//                {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
-//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-//                {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
-//                {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
-//        };
-
         this.board = new char[][] {
-                {'k', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'},
+                {'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'},
                 {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
                 {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
                 {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
                 {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
-                {' ', 'p', ' ', ' ', ' ', ' ', ' ', ' '},
-                {' ', ' ', ' ', ' ', 'K', ' ', ' ', ' '}
+                {'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'},
+                {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'}
         };
+
+//        this.board = new char[][] {
+//                {'k', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+//                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+//                {' ', 'p', ' ', ' ', ' ', ' ', ' ', ' '},
+//                {' ', ' ', ' ', ' ', 'K', ' ', ' ', ' '}
+//        };
     }
 
     public boolean makeMove(String move, boolean isWhiteTurn) {
@@ -77,13 +77,13 @@ public class Chessboard {
         // Handle pawn promotion
         if (piece == 'P' && toNum == 0) {
             if (isWhiteTurn) {
-                piece = handlePromotion(isWhiteTurn);
+                piece = handlePromotion(true);
             } else {
                 piece = 'Q'; // Computer promotes to Queen by default
             }
         } else if (piece == 'p' && toNum == 7) {
             if (!isWhiteTurn) {
-                piece = handlePromotion(isWhiteTurn);
+                piece = handlePromotion(false);
             } else {
                 piece = 'q'; // Computer promotes to Queen by default
             }
