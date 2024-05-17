@@ -10,6 +10,7 @@ public class PieceEvaluator {
     private static final int QUEEN_VALUE = 900;
     private static final int KING_VALUE = 12000;
 
+
     public int evaluate(char[][] board) {
         int whiteScore = 0;
         int blackScore = 0;
@@ -43,4 +44,6 @@ public class PieceEvaluator {
             default -> 0;
         };
     }
+
+
 }

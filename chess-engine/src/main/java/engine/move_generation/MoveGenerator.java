@@ -4,45 +4,42 @@ import engine.move_generation.comparators.MoveValueComparator;
 import model.Move;
 import model.MoveResult;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class MoveGenerator {
 
     public static boolean pawnPromotionFlag = false;
     private static final int[] promotionPosition = new int[2];
 
-    public synchronized static MoveResult generatePossibleMoves(boolean isWhite, char[][] board) {
-        MoveResult moveResult = new MoveResult(new MoveValueComparator());
-
+    public synchronized static List<Move> generateAllPossibleMoves(boolean isWhite, char[][] board, boolean forProtection) {
+        List<Move> allMoves = new ArrayList<>();
         for (int rank = 0; rank < board.length; rank++) {
             for (int file = 0; file < board[rank].length; file++) {
                 char piece = board[rank][file];
                 if (isWhite) {
                     switch (piece) {
-                        case 'P' -> addMovesToResult(moveResult, generateWhitePawnsMove(rank, file, board));
-                        case 'R' -> addMovesToResult(moveResult, generateRookMoves(rank, file, isWhite, board));
-                        case 'N' -> addMovesToResult(moveResult, generateKnightMoves(rank, file, isWhite, board));
-                        case 'B' -> addMovesToResult(moveResult, generateBishopMoves(rank, file, isWhite, board));
-                        case 'Q' -> addMovesToResult(moveResult, generateQueenMoves(rank, file, isWhite, board));
-                        case 'K' -> addMovesToResult(moveResult, generateKingMoves(rank, file, isWhite, board));
+                        case 'P' -> allMoves.addAll(generateWhitePawnsMove(rank, file, board, forProtection));
+                        case 'R' -> allMoves.addAll(generateRookMoves(rank, file, isWhite, board, forProtection));
+                        case 'N' -> allMoves.addAll(generateKnightMoves(rank, file, isWhite, board, forProtection));
+                        case 'B' -> allMoves.addAll(generateBishopMoves(rank, file, isWhite, board, forProtection));
+                        case 'Q' -> allMoves.addAll(generateQueenMoves(rank, file, isWhite, board, forProtection));
+                        case 'K' -> allMoves.addAll(generateKingMoves(rank, file, isWhite, board, forProtection));
                     }
                 } else {
                     switch (piece) {
-                        case 'p' -> addMovesToResult(moveResult, generateBlackPawnsMove(rank, file, board));
-                        case 'r' -> addMovesToResult(moveResult, generateRookMoves(rank, file, isWhite, board));
-                        case 'n' -> addMovesToResult(moveResult, generateKnightMoves(rank, file, isWhite, board));
-                        case 'b' -> addMovesToResult(moveResult, generateBishopMoves(rank, file, isWhite, board));
-                        case 'q' -> addMovesToResult(moveResult, generateQueenMoves(rank, file, isWhite, board));
-                        case 'k' -> addMovesToResult(moveResult, generateKingMoves(rank, file, isWhite, board));
+                        case 'p' -> allMoves.addAll(generateBlackPawnsMove(rank, file, board, forProtection));
+                        case 'r' -> allMoves.addAll(generateRookMoves(rank, file, isWhite, board, forProtection));
+                        case 'n' -> allMoves.addAll(generateKnightMoves(rank, file, isWhite, board, forProtection));
+                        case 'b' -> allMoves.addAll(generateBishopMoves(rank, file, isWhite, board, forProtection));
+                        case 'q' -> allMoves.addAll(generateQueenMoves(rank, file, isWhite, board, forProtection));
+                        case 'k' -> allMoves.addAll(generateKingMoves(rank, file, isWhite, board, forProtection));
                     }
                 }
             }
         }
-
-        return moveResult;
+        return allMoves;
     }
+
 
     private synchronized static void addMovesToResult(MoveResult moveResult, List<Move> moves) {
         for (Move move : moves) {
@@ -73,7 +70,7 @@ public class MoveGenerator {
         return move;
     }
 
-    public static List<Move> generateWhitePawnsMove(int rank, int file, char[][] board) {
+    public static List<Move> generateWhitePawnsMove(int rank, int file, char[][] board, boolean isProtection) {
         List<Move> possiblePawnMoves = new ArrayList<>();
         if (rank == 0) { // Promotion
             possiblePawnMoves.addAll(generatePromotionMoves(rank, file, true));
@@ -101,7 +98,7 @@ public class MoveGenerator {
         return possiblePawnMoves;
     }
 
-    public static List<Move> generateBlackPawnsMove(int rank, int file, char[][] board) {
+    public static List<Move> generateBlackPawnsMove(int rank, int file, char[][] board, boolean isProtection) {
         List<Move> possiblePawnMoves = new ArrayList<>();
         if (rank == 7) { // Promotion
             possiblePawnMoves.addAll(generatePromotionMoves(rank, file, false));
@@ -137,7 +134,7 @@ public class MoveGenerator {
         return promotionMoves;
     }
 
-    public static List<Move> generateKnightMoves(int rank, int file, boolean isWhite, char[][] board) {
+    public static List<Move> generateKnightMoves(int rank, int file, boolean isWhite, char[][] board, boolean forProtection) {
         List<Move> possibleKnightMoves = new ArrayList<>();
         int[][] directions = {
                 {-2, -1}, {-2, +1},
@@ -152,84 +149,83 @@ public class MoveGenerator {
 
             if (newRankPosition >= 0 && newRankPosition < 8 && newFilePosition >= 0 && newFilePosition < 8) {
                 char target = board[newRankPosition][newFilePosition];
-                if (target == ' ' || (isWhite && Character.isLowerCase(target)) || (!isWhite && Character.isUpperCase(target))) {
+                if (target == ' ' || (isWhite && (forProtection || Character.isLowerCase(target))) || (!isWhite && (forProtection || Character.isUpperCase(target)))) {
                     possibleKnightMoves.add(newPossibleMove(rank, file, newRankPosition, newFilePosition, board));
                 }
             }
         }
 
         return possibleKnightMoves;
-
     }
 
-    public static List<Move> generateBishopMoves(int rank, int file, boolean isWhite, char[][] board) {
+    public static List<Move> generateBishopMoves(int rank, int file, boolean isWhite, char[][] board, boolean forProtection) {
         List<Move> possibleBishopMoves = new ArrayList<>();
-        moveDiagonally(rank, file, 1, -1, isWhite, possibleBishopMoves, board);  // Left diagonal back
-        moveDiagonally(rank, file, 1, 1, isWhite, possibleBishopMoves, board);   // Right diagonal back
-        moveDiagonally(rank, file, -1, -1, isWhite, possibleBishopMoves, board); // Left diagonal forward
-        moveDiagonally(rank, file, -1, 1, isWhite, possibleBishopMoves, board);  // Right diagonal forward
+        moveDiagonally(rank, file, 1, -1, isWhite, possibleBishopMoves, board, forProtection);  // Left diagonal back
+        moveDiagonally(rank, file, 1, 1, isWhite, possibleBishopMoves, board, forProtection);   // Right diagonal back
+        moveDiagonally(rank, file, -1, -1, isWhite, possibleBishopMoves, board, forProtection); // Left diagonal forward
+        moveDiagonally(rank, file, -1, 1, isWhite, possibleBishopMoves, board, forProtection);  // Right diagonal forward
         return possibleBishopMoves;
     }
 
-    public static List<Move> generateRookMoves(int rank, int file, boolean isWhite, char[][] board) {
+    public static List<Move> generateRookMoves(int rank, int file, boolean isWhite, char[][] board, boolean forProtection) {
         List<Move> possibleRookMoves = new ArrayList<>();
-        moveInDirection(rank, file, 0, 1, isWhite, possibleRookMoves, board);  // Move right
-        moveInDirection(rank, file, 0, -1, isWhite, possibleRookMoves, board); // Move left
-        moveInDirection(rank, file, -1, 0, isWhite, possibleRookMoves, board); // Move forward
-        moveInDirection(rank, file, 1, 0, isWhite, possibleRookMoves, board);  // Move back
+        moveInDirection(rank, file, 0, 1, isWhite, possibleRookMoves, board, forProtection);  // Move right
+        moveInDirection(rank, file, 0, -1, isWhite, possibleRookMoves, board, forProtection); // Move left
+        moveInDirection(rank, file, -1, 0, isWhite, possibleRookMoves, board, forProtection); // Move forward
+        moveInDirection(rank, file, 1, 0, isWhite, possibleRookMoves, board, forProtection);  // Move back
         return possibleRookMoves;
     }
 
-    public static List<Move> generateQueenMoves(int rank, int file, boolean isWhite, char[][] board) {
+    public static List<Move> generateQueenMoves(int rank, int file, boolean isWhite, char[][] board, boolean forProtection) {
         List<Move> possibleQueenMoves = new ArrayList<>();
-        moveDiagonally(rank, file, 1, -1, isWhite, possibleQueenMoves, board);  // Left diagonal back
-        moveDiagonally(rank, file, 1, 1, isWhite, possibleQueenMoves, board);   // Right diagonal back
-        moveDiagonally(rank, file, -1, -1, isWhite, possibleQueenMoves, board); // Left diagonal forward
-        moveDiagonally(rank, file, -1, 1, isWhite, possibleQueenMoves, board);  // Right diagonal forward
-        moveInDirection(rank, file, 0, 1, isWhite, possibleQueenMoves, board);  // Move right
-        moveInDirection(rank, file, 0, -1, isWhite, possibleQueenMoves, board); // Move left
-        moveInDirection(rank, file, -1, 0, isWhite, possibleQueenMoves, board); // Move forward
-        moveInDirection(rank, file, 1, 0, isWhite, possibleQueenMoves, board);  // Move back
+        moveDiagonally(rank, file, 1, -1, isWhite, possibleQueenMoves, board, forProtection);  // Left diagonal back
+        moveDiagonally(rank, file, 1, 1, isWhite, possibleQueenMoves, board, forProtection);   // Right diagonal back
+        moveDiagonally(rank, file, -1, -1, isWhite, possibleQueenMoves, board, forProtection); // Left diagonal forward
+        moveDiagonally(rank, file, -1, 1, isWhite, possibleQueenMoves, board, forProtection);  // Right diagonal forward
+        moveInDirection(rank, file, 0, 1, isWhite, possibleQueenMoves, board, forProtection);  // Move right
+        moveInDirection(rank, file, 0, -1, isWhite, possibleQueenMoves, board, forProtection); // Move left
+        moveInDirection(rank, file, -1, 0, isWhite, possibleQueenMoves, board, forProtection); // Move forward
+        moveInDirection(rank, file, 1, 0, isWhite, possibleQueenMoves, board, forProtection);  // Move back
         return possibleQueenMoves;
     }
 
-    private static void moveDiagonally(int rank, int file, int rankIncrement, int fileIncrement, boolean isWhite, List<Move> possibleMoves, char[][] board) {
+    private static void moveDiagonally(int rank, int file, int rankIncrement, int fileIncrement, boolean isWhite, List<Move> possibleMoves, char[][] board, boolean forProtection) {
         int newRankPosition = rank + rankIncrement;
         int newFilePosition = file + fileIncrement;
         while (newRankPosition >= 0 && newRankPosition < 8 && newFilePosition >= 0 && newFilePosition < 8) {
             char target = board[newRankPosition][newFilePosition];
-            if (target == ' ') {
+            if (target == ' ' || (isWhite && (forProtection || Character.isLowerCase(target))) || (!isWhite && (forProtection || Character.isUpperCase(target)))) {
                 possibleMoves.add(newPossibleMove(rank, file, newRankPosition, newFilePosition, board));
-            } else if ((isWhite && Character.isLowerCase(target)) || (!isWhite && Character.isUpperCase(target))) {
-                possibleMoves.add(newPossibleMove(rank, file, newRankPosition, newFilePosition, board));
-                break;
+                if (target != ' ') {
+                    break; // Stop if capturing an enemy or protecting an ally
+                }
             } else {
-                break;
+                break; // Stop if blocked by an ally
             }
             newRankPosition += rankIncrement;
             newFilePosition += fileIncrement;
         }
     }
 
-    private static void moveInDirection(int rank, int file, int rankIncrement, int fileIncrement, boolean isWhite, List<Move> possibleMoves, char[][] board) {
+    private static void moveInDirection(int rank, int file, int rankIncrement, int fileIncrement, boolean isWhite, List<Move> possibleMoves, char[][] board, boolean forProtection) {
         int newRankPosition = rank + rankIncrement;
         int newFilePosition = file + fileIncrement;
         while (newRankPosition >= 0 && newRankPosition < 8 && newFilePosition >= 0 && newFilePosition < 8) {
             char target = board[newRankPosition][newFilePosition];
-            if (target == ' ') {
+            if (target == ' ' || (isWhite && (forProtection || Character.isLowerCase(target))) || (!isWhite && (forProtection || Character.isUpperCase(target)))) {
                 possibleMoves.add(newPossibleMove(rank, file, newRankPosition, newFilePosition, board));
-            } else if ((isWhite && Character.isLowerCase(target)) || (!isWhite && Character.isUpperCase(target))) {
-                possibleMoves.add(newPossibleMove(rank, file, newRankPosition, newFilePosition, board));
-                break;
+                if (target != ' ') {
+                    break; // Stop if capturing an enemy or protecting an ally
+                }
             } else {
-                break;
+                break; // Stop if blocked by an ally
             }
             newRankPosition += rankIncrement;
             newFilePosition += fileIncrement;
         }
     }
 
-    public static List<Move> generateKingMoves(int rank, int file, boolean isWhite, char[][] board) {
+    public static List<Move> generateKingMoves(int rank, int file, boolean isWhite, char[][] board, boolean forProtection) {
         List<Move> possibleMoves = new ArrayList<>();
         int[][] directions = {
                 {1, 0}, // Forward
@@ -248,7 +244,7 @@ public class MoveGenerator {
 
             if (newRankPosition >= 0 && newRankPosition < 8 && newFilePosition >= 0 && newFilePosition < 8) {
                 char target = board[newRankPosition][newFilePosition];
-                if (target == ' ' || (isWhite && Character.isLowerCase(target)) || (!isWhite && Character.isUpperCase(target))) {
+                if (target == ' ' || (isWhite && (forProtection || Character.isLowerCase(target))) || (!isWhite && (forProtection || Character.isUpperCase(target)))) {
                     possibleMoves.add(newPossibleMove(rank, file, newRankPosition, newFilePosition, board));
                 }
             }

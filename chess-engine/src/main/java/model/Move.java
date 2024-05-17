@@ -16,6 +16,8 @@ public class Move {
     public char piece;
     public char capturedPiece = '\u0000';
     public boolean isPromotion = false;
+    public int value;
+
 
     @Override
     public String toString() {
@@ -24,6 +26,7 @@ public class Move {
                 ", destinationPosition=" + Arrays.toString(destinationPosition) +
                 ", piece=" + piece +
                 ", capturedPiece=" + (capturedPiece == '\u0000' ? "none" : capturedPiece) +
+                ", value=" + value +
                 '}';
     }
 }

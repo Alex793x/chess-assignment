@@ -4,8 +4,10 @@ import engine.Engine;
 import engine.move_generation.MoveGenerator;
 import lombok.NoArgsConstructor;
 import model.Chessboard;
+import model.Move;
 
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @NoArgsConstructor
 public final class GameEngine {
@@ -117,15 +119,21 @@ public final class GameEngine {
     private static void computerTurn(Chessboard chessboard, boolean isWhiteTurn) {
         System.out.println("-------------------------------------------");
         System.out.println("The computer is thinking about its move. Hold up...");
-        Engine engine = new Engine(chessboard.getBoard(), 6);
-        chessboard.setBoard(engine.bestMove(isWhiteTurn));
-        System.out.println("The computer has completed its move, board updated: ");
+        Engine engine = new Engine(12);
+        Move bestMove = engine.findBestMove(chessboard.getBoard(), isWhiteTurn, 15000);
+        if (bestMove != null) {
+            engine.applyMove(bestMove, chessboard.getBoard());
+            System.out.println("The computer has completed its move, board updated: ");
+        } else {
+            System.out.println("No valid moves found for the computer. Skipping turn.");
+        }
         printBoard(chessboard.getBoard());
         // Handle promotion after a valid move
         if (MoveGenerator.pawnPromotionFlag) {
             resetPawnPromotionFlag();
         }
     }
+
 
     private static void resetPawnPromotionFlag() {
         MoveGenerator.pawnPromotionFlag = false;
