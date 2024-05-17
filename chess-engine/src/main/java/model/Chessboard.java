@@ -1,10 +1,12 @@
 package model;
 
+import engine.move_generation.MoveGenerator;
 import engine.util.ZobristHashing;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Scanner;
 
 
