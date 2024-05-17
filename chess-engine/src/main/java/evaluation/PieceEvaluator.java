@@ -17,7 +17,30 @@ public class PieceEvaluator {
     private static final int QUEEN_VALUE = 900;
     private static final int KING_VALUE = 12000;
 
-    // ... (Other methods: isSacrificeBeneficial, isKnightAttack, isDiagonalAttack, isHorizontalOrVerticalAttack) ...
+    public boolean isSacrificeBeneficial(char[][] board, char piece, int targetRank, int targetFile) {
+        // Get the value of the piece being sacrificed
+        int pieceValue = getPieceValue(piece);
+
+        // Get the value of the piece at the target position
+        char targetPiece = board[targetRank][targetFile];
+        int targetPieceValue = getPieceValue(targetPiece);
+
+        // Consider pawn promotion
+        if (targetPiece == 'P' && targetRank == 0 || targetPiece == 'p' && targetRank == 7) {
+            targetPieceValue = QUEEN_VALUE; // Assume promotion to a queen
+        }
+
+        // Calculate the value difference
+        int valueDifference = pieceValue - targetPieceValue;
+
+        // More Flexible Logic:
+        // 1. Allow sacrifices of minor pieces (Knight, Bishop) for pawns
+        if (pieceValue <= BISHOP_VALUE && targetPiece == 'P' || pieceValue <= BISHOP_VALUE && targetPiece == 'p') {
+            return true;
+        }
+        // 2. Allow sacrifices if the value difference is small
+        return valueDifference > -200;  // Allow sacrifices up to 200 value difference
+    }
 
     public boolean isTacticallySound(char[][] board, Move move) {
         // Apply the move to the board temporarily
@@ -38,11 +61,13 @@ public class PieceEvaluator {
         // Check for positional advantage
         boolean isPositionalAdvantage = isPositionalAdvantageGained(board, move);
 
+        boolean isSacrificial = isSacrificeBeneficial(board, move.getPiece(), move.getDestinationPosition()[0], move.getDestinationPosition()[1]);
+
         // Undo the move
         MoveGenerator.undoMove(move, board);
 
         // Return true if any of the tactical elements are present
-        return isFork || isPin || isDiscoveredAttack || isSkewer || isPositionalAdvantage;
+        return isFork || isPin || isDiscoveredAttack || isSkewer || isPositionalAdvantage && !isSacrificial;
     }
 
     private boolean createsFork(char[][] board, Move move) {

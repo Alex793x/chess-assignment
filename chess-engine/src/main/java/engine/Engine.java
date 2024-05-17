@@ -63,6 +63,7 @@ public class Engine {
                 if (pieceEvaluator.isTacticallySound(board, move)) {
                     moveValue += 500;
                 }
+
                 move.setValue(moveValue);
 
                 if (isWhiteTurn && moveValue > bestValue) {
