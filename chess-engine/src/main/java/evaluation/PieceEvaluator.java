@@ -10,6 +10,30 @@ public class PieceEvaluator {
     private static final int QUEEN_VALUE = 900;
     private static final int KING_VALUE = 12000;
 
+    public boolean isSacrificeBeneficial(char[][] board, char piece, int targetRank, int targetFile) {
+        // Get the value of the piece being sacrificed
+        int pieceValue = getPieceValue(piece);
+
+        // Get the value of the piece at the target position
+        char targetPiece = board[targetRank][targetFile];
+        int targetPieceValue = getPieceValue(targetPiece);
+
+        // Consider pawn promotion
+        if (targetPiece == 'P' && targetRank == 0 || targetPiece == 'p' && targetRank == 7) {
+            targetPieceValue = QUEEN_VALUE; // Assume promotion to a queen
+        }
+
+        // Calculate the value difference
+        int valueDifference = pieceValue - targetPieceValue;
+
+        // More Flexible Logic:
+        // 1. Allow sacrifices of minor pieces (Knight, Bishop) for pawns
+        if (pieceValue <= BISHOP_VALUE && targetPiece == 'P' || pieceValue <= BISHOP_VALUE && targetPiece == 'p') {
+            return true;
+        }
+        // 2. Allow sacrifices if the value difference is small
+        return valueDifference > -200;  // Allow sacrifices up to 200 value difference
+    }
 
     public int evaluate(char[][] board) {
         int whiteScore = 0;
