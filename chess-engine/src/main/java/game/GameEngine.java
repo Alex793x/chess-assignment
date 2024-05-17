@@ -2,15 +2,20 @@ package game;
 
 import engine.Engine;
 import engine.move_generation.MoveGenerator;
+import engine.util.TranspositionTableEntry;
 import lombok.NoArgsConstructor;
 import model.Chessboard;
 import model.Move;
 
+import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @NoArgsConstructor
 public final class GameEngine {
+    public static final Map<Long, TranspositionTableEntry> transpositionTable = new ConcurrentHashMap<>();
+
 
     public static void printBoard(char[][] board) {
         System.out.println("       A    B    C    D    E    F    G    H");
@@ -119,7 +124,7 @@ public final class GameEngine {
     private static void computerTurn(Chessboard chessboard, boolean isWhiteTurn) {
         System.out.println("-------------------------------------------");
         System.out.println("The computer is thinking about its move. Hold up...");
-        Engine engine = new Engine(12);
+        Engine engine = new Engine(6);
         Move bestMove = engine.findBestMove(chessboard.getBoard(), isWhiteTurn, 15000);
         if (bestMove != null) {
             engine.applyMove(bestMove, chessboard.getBoard());

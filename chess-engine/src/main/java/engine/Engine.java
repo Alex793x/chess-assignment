@@ -12,19 +12,20 @@ import model.MoveResult;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static game.GameEngine.transpositionTable;
+
 @Getter
 public class Engine {
     private static final int MAX_DEPTH = 100;
 
     private final int searchDepth;
-    private final Map<Long, TranspositionTableEntry> transpositionTable = new ConcurrentHashMap<>();
     private int totalNodesEvaluated;
     private int totalNodesPossibilities;
     private Move bestMoveFromIterations;
     private Move bestMoveFromCurrentIteration;
 
     private final List<Move> bestMoves = new ArrayList<>();
-    private PieceEvaluator pieceEvaluator = new PieceEvaluator(); // Create an instance of the PieceEvaluator
+    private PieceEvaluator pieceEvaluator = new PieceEvaluator();
 
     public Engine(int searchDepth) {
         this.searchDepth = searchDepth;
@@ -53,15 +54,15 @@ public class Engine {
             Move bestMove = null;
             int bestValue = isWhiteTurn ? Integer.MIN_VALUE : Integer.MAX_VALUE;
 
+            // Evaluate all moves, don't skip based on isSacrificeBeneficial
             for (Move move : allMoves) {
                 totalNodesPossibilities++;
 
-                // Check for sacrifice before evaluating the move
-                if (!pieceEvaluator.isSacrificeBeneficial(board, move.getPiece(), move.getDestinationPosition()[0], move.getDestinationPosition()[1])) {
-                    continue; // Skip this move if it's not a beneficial sacrifice
-                }
-
+                // Check if the move is tactically sound and add a bonus if it is
                 int moveValue = evaluateMove(move, alpha, beta, board, depth, isWhiteTurn).value;
+                if (pieceEvaluator.isTacticallySound(board, move)) {
+                    moveValue += 500;
+                }
                 move.setValue(moveValue);
 
                 if (isWhiteTurn && moveValue > bestValue) {
@@ -83,6 +84,12 @@ public class Engine {
                     System.out.println("Time limit exceeded. Returning best move found so far.");
                     return bestMoveFromIterations != null ? bestMoveFromIterations : bestMoveFromCurrentIteration;
                 }
+            }
+
+            // Handle the case where no suitable moves are found
+            if (bestMove == null) {
+                System.out.println("No suitable moves found at depth: " + depth);
+                return null;
             }
 
             System.out.println("Depth: " + depth);
@@ -107,12 +114,12 @@ public class Engine {
     private MoveEvaluationResult evaluateMove(Move move, int alpha, int beta, char[][] board, int depth, boolean isWhiteTurn) {
         applyMove(move, board);
 
-        int boardValue = alphaBeta(board, depth - 1, alpha, beta, !isWhiteTurn);
-        move.setValue(boardValue);
+        int moveValue = alphaBeta(board, depth - 1, alpha, beta, !isWhiteTurn);
+        move.setValue(moveValue);
         System.out.println(move);
         undoMove(move, board);
 
-        return new MoveEvaluationResult(move, boardValue);
+        return new MoveEvaluationResult(move, move.getValue());
     }
 
     private int alphaBeta(char[][] board, int depth, int alpha, int beta, boolean isWhiteTurn) {
@@ -134,7 +141,7 @@ public class Engine {
 
         if (depth == 0 || isGameOver(board)) {
             totalNodesEvaluated++;
-            int eval = new PieceEvaluator().evaluate(board);
+            int eval = new PieceEvaluator().evaluate(board, isWhiteTurn);
             transpositionTable.put(boardHash, new TranspositionTableEntry(eval, depth, TranspositionTableEntryType.EXACT));
             return eval;
         }
