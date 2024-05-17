@@ -65,7 +65,7 @@ public class MoveGenerator {
         Move move = new Move();
         move.destinationPosition = new int[]{lastRankPosition, lastFilePosition};
         move.sourcePosition = new int[]{newRankPosition, newFilePosition};
-        move.piece = promotionPiece;
+        move.setPromotionPiece(promotionPiece);
         move.isPromotion = true;
         return move;
     }
@@ -73,10 +73,8 @@ public class MoveGenerator {
     public static List<Move> generateWhitePawnsMove(int rank, int file, char[][] board, boolean isProtection) {
         List<Move> possiblePawnMoves = new ArrayList<>();
         if (rank == 0) { // Promotion
-            possiblePawnMoves.addAll(generatePromotionMoves(rank, file, true));
+            possiblePawnMoves.addAll(generatePromotionMoves(rank, file, true, board));
             MoveGenerator.pawnPromotionFlag = true;
-            promotionPosition[0] = rank;
-            promotionPosition[1] = file;
         } else {
             if (rank > 0 && board[rank - 1][file] == ' ') {
                 possiblePawnMoves.add(newPossibleMove(rank, file, rank - 1, file, board));
@@ -101,10 +99,8 @@ public class MoveGenerator {
     public static List<Move> generateBlackPawnsMove(int rank, int file, char[][] board, boolean isProtection) {
         List<Move> possiblePawnMoves = new ArrayList<>();
         if (rank == 7) { // Promotion
-            possiblePawnMoves.addAll(generatePromotionMoves(rank, file, false));
+            possiblePawnMoves.addAll(generatePromotionMoves(rank, file, false, board));
             MoveGenerator.pawnPromotionFlag = true;
-            promotionPosition[0] = rank;
-            promotionPosition[1] = file;
         } else {
             if (rank < 7 && board[rank + 1][file] == ' ') {
                 possiblePawnMoves.add(newPossibleMove(rank, file, rank + 1, file, board));
@@ -125,12 +121,17 @@ public class MoveGenerator {
         return possiblePawnMoves;
     }
 
-    private static List<Move> generatePromotionMoves(int rank, int file, boolean isWhite) {
+    public static List<Move> generatePromotionMoves(int rank, int file, boolean isWhite, char[][] board) {
         List<Move> promotionMoves = new ArrayList<>();
         char[] promotionPieces = isWhite ? new char[]{'Q', 'R', 'B', 'N'} : new char[]{'q', 'r', 'b', 'n'};
+
         for (char promotionPiece : promotionPieces) {
-            promotionMoves.add(newPossiblePromotionMove(rank, file, rank, file, promotionPiece));
+            Move move = newPossiblePromotionMove(rank, file, rank, file, promotionPiece);
+            move.setPromotionPiece(promotionPiece); // Set promotionPiece
+            move.setPromotion(true); // Set isPromotion
+            promotionMoves.add(move);
         }
+
         return promotionMoves;
     }
 

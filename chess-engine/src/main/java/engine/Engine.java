@@ -5,10 +5,14 @@ import engine.util.TranspositionTableEntry;
 import engine.util.TranspositionTableEntryType;
 import engine.util.ZobristHashing;
 import evaluation.PieceEvaluator;
+import game.GameEngine;
 import lombok.Getter;
 import model.Move;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
@@ -48,27 +52,41 @@ public class Engine {
 
             for (Move move : allMoves) {
                 totalNodesPossibilities++;
-                int moveValue = evaluateMove(move, alpha, beta, board, depth, isWhiteTurn).value;
-                move.setValue(moveValue);
 
-                if (isWhiteTurn && moveValue > bestValue) {
-                    bestValue = moveValue;
-                    bestMove = move;
-                    alpha = bestValue;
-                } else if (!isWhiteTurn && moveValue < bestValue) {
-                    bestValue = moveValue;
-                    bestMove = move;
-                    beta = bestValue;
+                // Evaluate each promotion option if it's a pawn promotion move
+                List<Move> promotionMoves = new ArrayList<>();
+                if (move.isPromotion()) {
+                    promotionMoves = MoveGenerator.generatePromotionMoves(move.getSourcePosition()[0], move.getSourcePosition()[1], isWhiteTurn, board);
+                } else {
+                    promotionMoves.add(move);
+                }
+
+                for (Move promotionMove : promotionMoves) {
+                    int moveValue = evaluateMove(promotionMove, alpha, beta, board, depth, isWhiteTurn).value;
+                    promotionMove.setValue(moveValue);
+
+                    if (isWhiteTurn && moveValue > bestValue) {
+                        bestValue = moveValue;
+                        bestMove = promotionMove;
+                        alpha = bestValue;
+                    } else if (!isWhiteTurn && moveValue < bestValue) {
+                        bestValue = moveValue;
+                        bestMove = promotionMove;
+                        beta = bestValue;
+                    }
+
+                    if (beta <= alpha) {
+                        break; // α-β cutoff
+                    }
+
+                    if (System.currentTimeMillis() >= endTime) {
+                        System.out.println("Time limit exceeded. Returning best move found so far.");
+                        return bestMoveFromIterations != null ? bestMoveFromIterations : bestMoveFromCurrentIteration;
+                    }
                 }
 
                 if (beta <= alpha) {
                     break; // α-β cutoff
-                }
-
-                // Check if time limit exceeded after evaluating each move
-                if (System.currentTimeMillis() >= endTime) {
-                    System.out.println("Time limit exceeded. Returning best move found so far.");
-                    return bestMoveFromIterations != null ? bestMoveFromIterations : bestMoveFromCurrentIteration;
                 }
             }
 
@@ -80,8 +98,8 @@ public class Engine {
 
             // Update the best move found across all iterations
             if (bestMoveFromIterations == null ||
-                    (isWhiteTurn && bestMoveFromCurrentIteration.getValue() > bestMoveFromIterations.getValue()) ||
-                    (!isWhiteTurn && bestMoveFromCurrentIteration.getValue() < bestMoveFromIterations.getValue())) {
+                    (isWhiteTurn && Objects.requireNonNull(bestMoveFromCurrentIteration).getValue() > bestMoveFromIterations.getValue()) ||
+                    (!isWhiteTurn && Objects.requireNonNull(bestMoveFromCurrentIteration).getValue() < bestMoveFromIterations.getValue())) {
                 bestMoveFromIterations = bestMoveFromCurrentIteration;
             }
 
@@ -91,12 +109,12 @@ public class Engine {
         return bestMoveFromIterations != null ? bestMoveFromIterations : bestMoveFromCurrentIteration;
     }
 
+
     private MoveEvaluationResult evaluateMove(Move move, int alpha, int beta, char[][] board, int depth, boolean isWhiteTurn) {
         applyMove(move, board);
 
         int boardValue = alphaBeta(board, depth - 1, alpha, beta, !isWhiteTurn);
         move.setValue(boardValue);
-        System.out.println(move);
         undoMove(move, board);
 
         return new MoveEvaluationResult(move, boardValue);
@@ -175,21 +193,24 @@ public class Engine {
     public void applyMove(Move move, char[][] board) {
         int[] destinationPosition = move.getDestinationPosition();
         int[] newSoutePosition = move.getSourcePosition();
-        char piece = move.getPiece();
+        char piece = move.isPromotion() ? move.getPromotionPiece() : move.getPiece();
 
         move.setCapturedPiece(board[newSoutePosition[0]][newSoutePosition[1]]);
 
         board[newSoutePosition[0]][newSoutePosition[1]] = piece;
         board[destinationPosition[0]][destinationPosition[1]] = ' ';
+
     }
+
 
     private void undoMove(Move move, char[][] board) {
         int[] destinationPosition = move.getDestinationPosition();
         int[] newSoutePosition = move.getSourcePosition();
-        char piece = move.getPiece();
+        char piece = move.isPromotion() ? move.getPromotionPiece() : move.getPiece();
 
         board[newSoutePosition[0]][newSoutePosition[1]] = move.getCapturedPiece();
         board[destinationPosition[0]][destinationPosition[1]] = piece;
+
     }
 
     private long computeZobristHash(char[][] board) {
@@ -210,5 +231,6 @@ public class Engine {
         return false;
     }
 
-    private record MoveEvaluationResult(Move move, int value) {}
+    private record MoveEvaluationResult(Move move, int value) {
+    }
 }
