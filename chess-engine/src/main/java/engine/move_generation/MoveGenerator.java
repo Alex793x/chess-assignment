@@ -40,6 +40,49 @@ public class MoveGenerator {
         return allMoves;
     }
 
+    // Modified to generate moves that don't lead to checkmate
+    public synchronized static MoveResult generateAllPossibleMovesWithCheckPrevention(boolean isWhite, char[][] board) {
+        MoveResult moveResult = new MoveResult(new MoveValueComparator());
+        for (int rank = 0; rank < board.length; rank++) {
+            for (int file = 0; file < board[rank].length; file++) {
+                char piece = board[rank][file];
+                if (isWhite) {
+                    switch (piece) {
+                        case 'P' -> addMovesToResult(moveResult, generateWhitePawnsMove(rank, file, board, false));
+                        case 'R' -> addMovesToResult(moveResult, generateRookMoves(rank, file, isWhite, board, false));
+                        case 'N' -> addMovesToResult(moveResult, generateKnightMoves(rank, file, isWhite, board, false));
+                        case 'B' -> addMovesToResult(moveResult, generateBishopMoves(rank, file, isWhite, board, false));
+                        case 'Q' -> addMovesToResult(moveResult, generateQueenMoves(rank, file, isWhite, board, false));
+                        case 'K' -> addMovesToResult(moveResult, generateKingMoves(rank, file, isWhite, board, false));
+                    }
+                } else {
+                    switch (piece) {
+                        case 'p' -> addMovesToResult(moveResult, generateBlackPawnsMove(rank, file, board, false));
+                        case 'r' -> addMovesToResult(moveResult, generateRookMoves(rank, file, isWhite, board, false));
+                        case 'n' -> addMovesToResult(moveResult, generateKnightMoves(rank, file, isWhite, board, false));
+                        case 'b' -> addMovesToResult(moveResult, generateBishopMoves(rank, file, isWhite, board, false));
+                        case 'q' -> addMovesToResult(moveResult, generateQueenMoves(rank, file, isWhite, board, false));
+                        case 'k' -> addMovesToResult(moveResult, generateKingMoves(rank, file, isWhite, board, false));
+                    }
+                }
+            }
+        }
+
+        // Filter out moves that lead to checkmate
+        moveResult.getAllQueues().forEach(queue -> {
+            Iterator<Move> iterator = queue.iterator();
+            while (iterator.hasNext()) {
+                Move move = iterator.next();
+                applyMove(move, board);
+                if (isCheckmate(board, !isWhite)) {
+                    iterator.remove();
+                }
+                undoMove(move, board);
+            }
+        });
+
+        return moveResult;
+    }
 
     private synchronized static void addMovesToResult(MoveResult moveResult, List<Move> moves) {
         for (Move move : moves) {
@@ -268,5 +311,190 @@ public class MoveGenerator {
         int file = promotionPosition[1];
         board[rank][file] = newPiece;
         pawnPromotionFlag = false;
+    }
+
+    // Helper methods for check prevention
+    private static void applyMove(Move move, char[][] board) {
+        int[] destinationPosition = move.getDestinationPosition();
+        int[] newSoutePosition = move.getSourcePosition();
+        char piece = move.getPiece();
+
+        move.setCapturedPiece(board[newSoutePosition[0]][newSoutePosition[1]]);
+
+        board[newSoutePosition[0]][newSoutePosition[1]] = piece;
+        board[destinationPosition[0]][destinationPosition[1]] = ' ';
+    }
+
+    private static void undoMove(Move move, char[][] board) {
+        int[] destinationPosition = move.getDestinationPosition();
+        int[] newSoutePosition = move.getSourcePosition();
+        char piece = move.getPiece();
+
+        board[newSoutePosition[0]][newSoutePosition[1]] = move.getCapturedPiece();
+        board[destinationPosition[0]][destinationPosition[1]] = piece;
+    }
+
+    private static boolean isCheckmate(char[][] board, boolean isWhite) {
+        // Check if the king is in check
+        if (!isCheck(board, isWhite)) {
+            return false; // Not in check, so no checkmate
+        }
+
+        // Generate all possible moves for the current player
+        List<Move> allMoves = generateAllPossibleMoves(isWhite, board, false);
+
+        // Check if any move removes the check
+        for (Move move : allMoves) {
+            applyMove(move, board);
+            if (!isCheck(board, isWhite)) {
+                undoMove(move, board);
+                return false; // A valid move exists to remove the check, so no checkmate
+            }
+            undoMove(move, board);
+        }
+
+        // No valid move removes the check, so it's checkmate
+        return true;
+    }
+
+    private static boolean isCheck(char[][] board, boolean isWhite) {
+        // Find the position of the king
+        int kingRank = -1;
+        int kingFile = -1;
+        for (int rank = 0; rank < 8; rank++) {
+            for (int file = 0; file < 8; file++) {
+                if (isWhite && board[rank][file] == 'K' || !isWhite && board[rank][file] == 'k') {
+                    kingRank = rank;
+                    kingFile = file;
+                    break;
+                }
+            }
+            if (kingRank != -1) {
+                break;
+            }
+        }
+
+        // Check for attacks on the king's position
+        return isAttacked(board, kingRank, kingFile, !isWhite);
+    }
+
+    private static boolean isAttacked(char[][] board, int rank, int file, boolean attackerColor) {
+        // Check for pawn attacks
+        if (attackerColor) { // White attacker
+            if (rank > 0 && file > 0 && board[rank - 1][file - 1] == 'P') {
+                return true;
+            }
+            if (rank > 0 && file < 7 && board[rank - 1][file + 1] == 'P') {
+                return true;
+            }
+        } else { // Black attacker
+            if (rank < 7 && file > 0 && board[rank + 1][file - 1] == 'p') {
+                return true;
+            }
+            if (rank < 7 && file < 7 && board[rank + 1][file + 1] == 'p') {
+                return true;
+            }
+        }
+
+        // Check for knight attacks
+        int[][] knightDirections = {{-2, -1}, {-2, 1}, {-1, -2}, {-1, 2}, {1, -2}, {1, 2}, {2, -1}, {2, 1}};
+        for (int[] direction : knightDirections) {
+            int newRank = rank + direction[0];
+            int newFile = file + direction[1];
+            if (newFile >= 0 && newFile < 8 && newRank >= 0 && newRank < 8 && (attackerColor && board[newRank][newFile] == 'N' || !attackerColor && board[newRank][newFile] == 'n')) {
+                return true;
+            }
+        }
+
+        // Check for rook and queen attacks
+        for (int i = file + 1; i < 8; i++) {
+            if (board[rank][i] != ' ') {
+                if (attackerColor && (board[rank][i] == 'R' || board[rank][i] == 'Q') || !attackerColor && (board[rank][i] == 'r' || board[rank][i] == 'q')) {
+                    return true;
+                }
+                break;
+            }
+        }
+        for (int i = file - 1; i >= 0; i--) {
+            if (board[rank][i] != ' ') {
+                if (attackerColor && (board[rank][i] == 'R' || board[rank][i] == 'Q') || !attackerColor && (board[rank][i] == 'r' || board[rank][i] == 'q')) {
+                    return true;
+                }
+                break;
+            }
+        }
+        for (int i = rank + 1; i < 8; i++) {
+            if (board[i][file] != ' ') {
+                if (attackerColor && (board[i][file] == 'R' || board[i][file] == 'Q') || !attackerColor && (board[i][file] == 'r' || board[i][file] == 'q')) {
+                    return true;
+                }
+                break;
+            }
+        }
+        for (int i = rank - 1; i >= 0; i--) {
+            if (board[i][file] != ' ') {
+                if (attackerColor && (board[i][file] == 'R' || board[i][file] == 'Q') || !attackerColor && (board[i][file] == 'r' || board[i][file] == 'q')) {
+                    return true;
+                }
+                break;
+            }
+        }
+
+        // Check for bishop and queen attacks
+        for (int i = 1; i < 8; i++) {
+            int newRank = rank + i;
+            int newFile = file + i;
+            if (newFile >= 0 && newFile < 8 && newRank >= 0 && newRank < 8 && board[newRank][newFile] != ' ') {
+                if (attackerColor && (board[newRank][newFile] == 'B' || board[newRank][newFile] == 'Q') || !attackerColor && (board[newRank][newFile] == 'b' || board[newRank][newFile] == 'q')) {
+                    return true;
+                }
+                break;
+            }
+        }
+        for (int i = 1; i < 8; i++) {
+            int newRank = rank + i;
+            int newFile = file - i;
+            if (newFile >= 0 && newFile < 8 && newRank >= 0 && newRank < 8 && board[newRank][newFile] != ' ') {
+                if (attackerColor && (board[newRank][newFile] == 'B' || board[newRank][newFile] == 'Q') || !attackerColor && (board[newRank][newFile] == 'b' || board[newRank][newFile] == 'q')) {
+                    return true;
+                }
+                break;
+            }
+        }
+        for (int i = 1; i < 8; i++) {
+            int newRank = rank - i;
+            int newFile = file + i;
+            if (newFile >= 0 && newFile < 8 && newRank >= 0 && newRank < 8 && board[newRank][newFile] != ' ') {
+                if (attackerColor && (board[newRank][newFile] == 'B' || board[newRank][newFile] == 'Q') || !attackerColor && (board[newRank][newFile] == 'b' || board[newRank][newFile] == 'q')) {
+                    return true;
+                }
+                break;
+            }
+        }
+        for (int i = 1; i < 8; i++) {
+            int newRank = rank - i;
+            int newFile = file - i;
+            if (newFile >= 0 && newFile < 8 && newRank >= 0 && newRank < 8 && board[newRank][newFile] != ' ') {
+                if (attackerColor && (board[newRank][newFile] == 'B' || board[newRank][newFile] == 'Q') || !attackerColor && (board[newRank][newFile] == 'b' || board[newRank][newFile] == 'q')) {
+                    return true;
+                }
+                break;
+            }
+        }
+
+        // Check for king attacks
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (i != 0 || j != 0) {
+                    int newRank = rank + i;
+                    int newFile = file + j;
+                    if (newFile >= 0 && newFile < 8 && newRank >= 0 && newRank < 8 && (attackerColor && board[newRank][newFile] == 'K' || !attackerColor && board[newRank][newFile] == 'k')) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false; // No attack found
     }
 }
