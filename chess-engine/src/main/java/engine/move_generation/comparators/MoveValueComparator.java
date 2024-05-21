@@ -32,9 +32,7 @@ public class MoveValueComparator implements Comparator<Move> {
         // Calculate trade value to penalize bad trades
         int tradeValue = (captureValue - attackerValue) * tradeWeight;
 
-
         // Total value calculation
-
         return (captureValue * captureWeight) + (positionalValue * positionalWeight) + tradeValue + promotionBonus;
     }
 

@@ -40,13 +40,14 @@ public class MoveGenerator {
                 }
             }
         }
+        pawnPromotionFlag = false;
 
         return moveResult;
     }
 
     private synchronized static void addMovesToResult(MoveResult moveResult, List<Move> moves) {
         for (Move move : moves) {
-            if (MoveValueComparator.isPromotionMove(move)) {
+            if (pawnPromotionFlag) {
                 moveResult.getPromotionMoves().add(move);
             } else if (move.getCapturedPiece() != '\u0000') {
                 moveResult.getValidCaptures().add(move);
@@ -70,72 +71,80 @@ public class MoveGenerator {
         move.sourcePosition = new int[]{newRankPosition, newFilePosition};
         move.piece = promotionPiece;
         move.isPromotion = true;
+        move.promotionPieceType = promotionPiece;
         return move;
     }
 
     public static List<Move> generateWhitePawnsMove(int rank, int file, char[][] board) {
         List<Move> possiblePawnMoves = new ArrayList<>();
-        if (rank == 0) { // Promotion
-            possiblePawnMoves.addAll(generatePromotionMoves(rank, file, true));
+        if (rank == 1) { // Promotion
+            possiblePawnMoves.addAll(generatePromotionMoves(rank, file, true, board));
             MoveGenerator.pawnPromotionFlag = true;
             promotionPosition[0] = rank;
             promotionPosition[1] = file;
         } else {
-            if (rank > 0 && board[rank - 1][file] == ' ') {
+            if (board[rank - 1][file] == ' ') {
                 possiblePawnMoves.add(newPossibleMove(rank, file, rank - 1, file, board));
+                if (rank == 6 && board[rank - 2][file] == ' ') {
+                    possiblePawnMoves.add(newPossibleMove(rank, file, rank - 2, file, board));
+                }
             }
-
-            if (rank == 6 && board[rank - 2][file] == ' ' && board[rank - 1][file] == ' ') {
-                possiblePawnMoves.add(newPossibleMove(rank, file, rank - 2, file, board));
-            }
-
-            if (file - 1 >= 0 && board[rank - 1][file - 1] != ' ' && Character.isLowerCase(board[rank - 1][file - 1])) {
+            if (file > 0 && Character.isLowerCase(board[rank - 1][file - 1])) {
                 possiblePawnMoves.add(newPossibleMove(rank, file, rank - 1, file - 1, board));
             }
-
-            if (file + 1 <= 7 && board[rank - 1][file + 1] != ' ' && Character.isLowerCase(board[rank - 1][file + 1])) {
+            if (file < 7 && Character.isLowerCase(board[rank - 1][file + 1])) {
                 possiblePawnMoves.add(newPossibleMove(rank, file, rank - 1, file + 1, board));
             }
         }
-
         return possiblePawnMoves;
     }
 
     public static List<Move> generateBlackPawnsMove(int rank, int file, char[][] board) {
         List<Move> possiblePawnMoves = new ArrayList<>();
-        if (rank == 7) { // Promotion
-            possiblePawnMoves.addAll(generatePromotionMoves(rank, file, false));
+        if (rank == 6) { // Promotion
+            possiblePawnMoves.addAll(generatePromotionMoves(rank, file, false, board));
             MoveGenerator.pawnPromotionFlag = true;
             promotionPosition[0] = rank;
             promotionPosition[1] = file;
         } else {
-            if (rank < 7 && board[rank + 1][file] == ' ') {
+            if (board[rank + 1][file] == ' ') {
                 possiblePawnMoves.add(newPossibleMove(rank, file, rank + 1, file, board));
+                if (rank == 1 && board[rank + 2][file] == ' ') {
+                    possiblePawnMoves.add(newPossibleMove(rank, file, rank + 2, file, board));
+                }
             }
-
-            if (rank == 1 && board[rank + 2][file] == ' ' && board[rank + 1][file] == ' ') {
-                possiblePawnMoves.add(newPossibleMove(rank, file, rank + 2, file, board));
-            }
-
-            if (file - 1 >= 0 && board[rank + 1][file - 1] != ' ' && Character.isUpperCase(board[rank + 1][file - 1])) {
+            if (file > 0 && Character.isUpperCase(board[rank + 1][file - 1])) {
                 possiblePawnMoves.add(newPossibleMove(rank, file, rank + 1, file - 1, board));
             }
-
-            if (file + 1 <= 7 && board[rank + 1][file + 1] != ' ' && Character.isUpperCase(board[rank + 1][file + 1])) {
+            if (file < 7 && Character.isUpperCase(board[rank + 1][file + 1])) {
                 possiblePawnMoves.add(newPossibleMove(rank, file, rank + 1, file + 1, board));
             }
         }
         return possiblePawnMoves;
     }
 
-    private static List<Move> generatePromotionMoves(int rank, int file, boolean isWhite) {
+
+    private static List<Move> generatePromotionMoves(int rank, int file, boolean isWhite, char[][] board) {
         List<Move> promotionMoves = new ArrayList<>();
         char[] promotionPieces = isWhite ? new char[]{'Q', 'R', 'B', 'N'} : new char[]{'q', 'r', 'b', 'n'};
+        int newRank = isWhite ? rank - 1 : rank + 1;
+
         for (char promotionPiece : promotionPieces) {
-            promotionMoves.add(newPossiblePromotionMove(rank, file, rank, file, promotionPiece));
+            // Moving forward to an empty square
+            if (board[newRank][file] == ' ') {
+                promotionMoves.add(newPossiblePromotionMove(rank, file, newRank, file, promotionPiece));
+            }
+            // Capturing diagonally
+            if (file - 1 >= 0 && ((isWhite && Character.isLowerCase(board[newRank][file - 1])) || (!isWhite && Character.isUpperCase(board[newRank][file - 1])))) {
+                promotionMoves.add(newPossiblePromotionMove(rank, file, newRank, file - 1, promotionPiece));
+            }
+            if (file + 1 < 8 && ((isWhite && Character.isLowerCase(board[newRank][file + 1])) || (!isWhite && Character.isUpperCase(board[newRank][file + 1])))) {
+                promotionMoves.add(newPossiblePromotionMove(rank, file, newRank, file + 1, promotionPiece));
+            }
         }
         return promotionMoves;
     }
+
 
     public static List<Move> generateKnightMoves(int rank, int file, boolean isWhite, char[][] board) {
         List<Move> possibleKnightMoves = new ArrayList<>();
@@ -273,4 +282,8 @@ public class MoveGenerator {
         board[rank][file] = newPiece;
         pawnPromotionFlag = false;
     }
+
+
+
+
 }

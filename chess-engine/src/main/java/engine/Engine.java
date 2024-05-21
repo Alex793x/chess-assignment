@@ -27,7 +27,7 @@ public class Engine {
     public char[][] board;
     public int maxDepth;
 
-    public MoveEvaluationResult minimax(int depth, int alpha, int beta, boolean maximizingPlayer) {
+    public MoveEvaluationResult alphaBeta(int depth, int alpha, int beta, boolean maximizingPlayer) {
         long zobristHash = computeZobristHash();
 
         // Check the transposition table
@@ -56,15 +56,15 @@ public class Engine {
             return new MoveEvaluationResult(evaluation, null);
         }
 
-        MoveResult moveResult = MoveGenerator.generatePossibleMoves(maximizingPlayer, board);
+        MoveResult moveResult = generatePossibleMoves(maximizingPlayer, board);
         Move bestMove = null;
         int alphaOrig = alpha;
 
         if (maximizingPlayer) {
             int maxEval = Integer.MIN_VALUE;
             for (Move move : getMovesFromQueues(moveResult)) {
-                applyMove(move);
-                int eval = minimax(depth - 1, alpha, beta, false).getEvaluation();
+                makeMove(move);
+                int eval = alphaBeta(depth - 1, alpha, beta, false).getEvaluation();
                 undoMove(move);
 
                 if (eval > maxEval) {
@@ -82,8 +82,8 @@ public class Engine {
         } else {
             int minEval = Integer.MAX_VALUE;
             for (Move move : getMovesFromQueues(moveResult)) {
-                applyMove(move);
-                int eval = minimax(depth - 1, alpha, beta, true).getEvaluation();
+                makeMove(move);
+                int eval = alphaBeta(depth - 1, alpha, beta, true).getEvaluation();
                 undoMove(move);
 
                 if (eval < minEval) {
@@ -110,22 +110,26 @@ public class Engine {
     }
 
     public char[][] bestMove(boolean isWhiteTurn) {
-        MoveEvaluationResult bestResult = minimax(maxDepth, Integer.MIN_VALUE, Integer.MAX_VALUE, isWhiteTurn);
+        MoveEvaluationResult bestResult = alphaBeta(maxDepth, Integer.MIN_VALUE, Integer.MAX_VALUE, isWhiteTurn);
         System.out.println(bestResult);
-        applyMove(bestResult.getBestMove());
+        makeMove(bestResult.getBestMove());
 
         return board;
     }
 
-    private void applyMove(Move move) {
+    private void makeMove(Move move) {
         int[] oldSpace = move.destinationPosition;
         int[] newSpace = move.sourcePosition;
-        char piece = move.piece;
+        char piece = board[oldSpace[0]][oldSpace[1]];
 
-        // Store the captured piece in the move to restore it later
         move.capturedPiece = board[newSpace[0]][newSpace[1]];
 
         // Update the board with the move
+        if (move.isPromotion) {
+            // Use the promotionPieceType if this is a promotion move
+            piece = move.promotionPieceType;
+        }
+
         board[newSpace[0]][newSpace[1]] = piece;
         board[oldSpace[0]][oldSpace[1]] = ' ';
 
@@ -134,14 +138,18 @@ public class Engine {
         }
     }
 
+
     private void undoMove(Move move) {
         int[] oldSpace = move.destinationPosition;
         int[] newSpace = move.sourcePosition;
         char piece = move.piece;
 
-        // Restore the captured piece
         board[newSpace[0]][newSpace[1]] = move.capturedPiece;
         board[oldSpace[0]][oldSpace[1]] = piece;
+
+        if (move.isPromotion) {
+            MoveGenerator.pawnPromotionFlag = false;
+        }
     }
 
 

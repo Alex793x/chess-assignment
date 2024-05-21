@@ -23,13 +23,6 @@ public class MoveResult {
         this.promotionMoves = new PriorityQueue<>(moveComparator);
     }
 
-    public List<PriorityQueue<Move>> getAllQueues() {
-        List<PriorityQueue<Move>> allQueues = new ArrayList<>();
-        allQueues.add(validMoves);
-        allQueues.add(validCaptures);
-        allQueues.add(promotionMoves);
-        return allQueues;
-    }
 
     @Override
     public String toString() {
