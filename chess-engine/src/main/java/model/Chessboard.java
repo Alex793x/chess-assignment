@@ -54,8 +54,12 @@ public class Chessboard {
     }
 
     public boolean makeMove(String move, boolean isWhiteTurn) {
+        if (move.equals("O-O") || move.equals("O-O-O")) {
+            return handleCastling(move, isWhiteTurn);
+        }
+
         if (move.length() != 5 || move.charAt(2) != ' ') {
-            System.out.println("Invalid move format. Please use the format 'e2 e4'.");
+            System.out.println("Invalid move format. Please use the format 'e2 e4' or 'O-O'/'O-O-O' for castling.");
             return false;
         }
 
@@ -69,8 +73,6 @@ public class Chessboard {
             System.out.println("Invalid move: Coordinates out of board range.");
             return false;
         }
-
-        System.out.println(fromChar + " " + fromNum + " " + toChar + " " + toNum);
 
         char piece = board[fromNum][fromChar];
 
@@ -87,17 +89,9 @@ public class Chessboard {
 
         // Handle pawn promotion
         if (piece == 'P' && toNum == 0) {
-            if (isWhiteTurn) {
-                piece = handlePromotion(isWhiteTurn);
-            } else {
-                piece = 'Q'; // Computer promotes to Queen by default
-            }
+            piece = handlePromotion(isWhiteTurn);
         } else if (piece == 'p' && toNum == 7) {
-            if (!isWhiteTurn) {
-                piece = handlePromotion(isWhiteTurn);
-            } else {
-                piece = 'q'; // Computer promotes to Queen by default
-            }
+            piece = handlePromotion(isWhiteTurn);
         }
 
         // Move the piece
@@ -105,6 +99,48 @@ public class Chessboard {
         board[toNum][toChar] = piece;
 
         return true;
+    }
+
+    private boolean handleCastling(String move, boolean isWhiteTurn) {
+        if (isWhiteTurn) {
+            if (move.equals("O-O")) { // White king-side castling
+                if (board[7][4] == 'K' && board[7][7] == 'R' && board[7][5] == ' ' && board[7][6] == ' ') {
+                    board[7][4] = ' ';
+                    board[7][7] = ' ';
+                    board[7][6] = 'K';
+                    board[7][5] = 'R';
+                    return true;
+                }
+            } else if (move.equals("O-O-O")) { // White queen-side castling
+                if (board[7][4] == 'K' && board[7][0] == 'R' && board[7][1] == ' ' && board[7][2] == ' ' && board[7][3] == ' ') {
+                    board[7][4] = ' ';
+                    board[7][0] = ' ';
+                    board[7][2] = 'K';
+                    board[7][3] = 'R';
+                    return true;
+                }
+            }
+        } else {
+            if (move.equals("O-O")) { // Black king-side castling
+                if (board[0][4] == 'k' && board[0][7] == 'r' && board[0][5] == ' ' && board[0][6] == ' ') {
+                    board[0][4] = ' ';
+                    board[0][7] = ' ';
+                    board[0][6] = 'k';
+                    board[0][5] = 'r';
+                    return true;
+                }
+            } else if (move.equals("O-O-O")) { // Black queen-side castling
+                if (board[0][4] == 'k' && board[0][0] == 'r' && board[0][1] == ' ' && board[0][2] == ' ' && board[0][3] == ' ') {
+                    board[0][4] = ' ';
+                    board[0][0] = ' ';
+                    board[0][2] = 'k';
+                    board[0][3] = 'r';
+                    return true;
+                }
+            }
+        }
+        System.out.println("Invalid castling move.");
+        return false;
     }
 
     private char handlePromotion(boolean isWhiteTurn) {
@@ -122,7 +158,6 @@ public class Chessboard {
         }
         return isWhiteTurn ? piece : Character.toLowerCase(piece);
     }
-
 
 
 

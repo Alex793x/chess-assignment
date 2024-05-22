@@ -39,6 +39,7 @@ public class MoveGenerator {
                     }
                 }
             }
+            addMovesToResult(moveResult, generateCastlingMoves(isWhite, board));
         }
         pawnPromotionFlag = false;
 
@@ -264,6 +265,30 @@ public class MoveGenerator {
         }
 
         return possibleMoves;
+    }
+
+    public static List<Move> generateCastlingMoves(boolean isWhite, char[][] board) {
+        List<Move> castlingMoves = new ArrayList<>();
+        if (isWhite) {
+            // Check if white can castle king side
+            if (board[7][4] == 'K' && board[7][7] == 'R' && board[7][5] == ' ' && board[7][6] == ' ') {
+                castlingMoves.add(newPossibleMove(7, 4, 7, 6, board)); // King side castling
+            }
+            // Check if white can castle queen side
+            if (board[7][4] == 'K' && board[7][0] == 'R' && board[7][1] == ' ' && board[7][2] == ' ' && board[7][3] == ' ') {
+                castlingMoves.add(newPossibleMove(7, 4, 7, 2, board)); // Queen side castling
+            }
+        } else {
+            // Check if black can castle king side
+            if (board[0][4] == 'k' && board[0][7] == 'r' && board[0][5] == ' ' && board[0][6] == ' ') {
+                castlingMoves.add(newPossibleMove(0, 4, 0, 6, board)); // King side castling
+            }
+            // Check if black can castle queen side
+            if (board[0][4] == 'k' && board[0][0] == 'r' && board[0][1] == ' ' && board[0][2] == ' ' && board[0][3] == ' ') {
+                castlingMoves.add(newPossibleMove(0, 4, 0, 2, board)); // Queen side castling
+            }
+        }
+        return castlingMoves;
     }
 
     public static void handlePawnPromotion(char[][] board, boolean isWhite, Scanner scanner) {

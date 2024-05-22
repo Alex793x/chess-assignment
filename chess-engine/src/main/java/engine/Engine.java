@@ -124,20 +124,30 @@ public class Engine {
 
         move.capturedPiece = board[newSpace[0]][newSpace[1]];
 
-        // Update the board with the move
         if (move.isPromotion) {
-            // Use the promotionPieceType if this is a promotion move
             piece = move.promotionPieceType;
         }
 
         board[newSpace[0]][newSpace[1]] = piece;
         board[oldSpace[0]][oldSpace[1]] = ' ';
 
+        // Handle castling move
+        if (piece == 'K' || piece == 'k') {
+            if (Math.abs(newSpace[1] - oldSpace[1]) == 2) {
+                if (newSpace[1] == 6) { // King side castling
+                    board[oldSpace[0]][7] = ' ';
+                    board[oldSpace[0]][5] = (piece == 'K') ? 'R' : 'r';
+                } else if (newSpace[1] == 2) { // Queen side castling
+                    board[oldSpace[0]][0] = ' ';
+                    board[oldSpace[0]][3] = (piece == 'K') ? 'R' : 'r';
+                }
+            }
+        }
+
         if (move.isPromotion) {
             MoveGenerator.pawnPromotionFlag = false;
         }
     }
-
 
     private void undoMove(Move move) {
         int[] oldSpace = move.destinationPosition;
@@ -146,6 +156,19 @@ public class Engine {
 
         board[newSpace[0]][newSpace[1]] = move.capturedPiece;
         board[oldSpace[0]][oldSpace[1]] = piece;
+
+        // Undo castling move
+        if (piece == 'K' || piece == 'k') {
+            if (Math.abs(newSpace[1] - oldSpace[1]) == 2) {
+                if (newSpace[1] == 6) { // King side castling
+                    board[oldSpace[0]][7] = (piece == 'K') ? 'R' : 'r';
+                    board[oldSpace[0]][5] = ' ';
+                } else if (newSpace[1] == 2) { // Queen side castling
+                    board[oldSpace[0]][0] = (piece == 'K') ? 'R' : 'r';
+                    board[oldSpace[0]][3] = ' ';
+                }
+            }
+        }
 
         if (move.isPromotion) {
             MoveGenerator.pawnPromotionFlag = false;

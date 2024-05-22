@@ -4,7 +4,10 @@ import engine.Engine;
 import engine.move_generation.MoveGenerator;
 import lombok.NoArgsConstructor;
 import model.Chessboard;
+import model.Move;
+import model.MoveResult;
 
+import java.util.List;
 import java.util.Scanner;
 
 @NoArgsConstructor
@@ -92,11 +95,33 @@ public final class GameEngine {
         boolean validMove = false;
         boolean exit = false;
 
+        // Check if castling is available
+        List<Move> castlingMoves = MoveGenerator.generateCastlingMoves(isWhiteTurn, chessboard.getBoard());
+        boolean canCastle = !castlingMoves.isEmpty();
+
+        if (canCastle) {
+            System.out.println("Do you want to castle? (Y/N):");
+            String response = scanner.nextLine().trim().toUpperCase();
+            if (response.equals("Y")) {
+                System.out.println("Choose castling type: 'O-O' for king-side or 'O-O-O' for queen-side:");
+                String castlingType = scanner.nextLine().trim().toUpperCase();
+                if (castlingType.equals("O-O") || castlingType.equals("O-O-O")) {
+                    if (chessboard.makeMove(castlingType, isWhiteTurn)) {
+                        return exit;
+                    } else {
+                        System.out.println("Invalid castling move.");
+                    }
+                } else {
+                    System.out.println("Invalid castling type.");
+                }
+            }
+        }
+
         while (!validMove) {
             System.out.println(isWhiteTurn ? "Whites turn. Please enter your move in the format example: e7 e5." :
                     "Blacks turn. Please enter your move in the format example: e7 e5.");
             String move = scanner.nextLine();
-            if (move.equalsIgnoreCase("End ")) {
+            if (move.equalsIgnoreCase("End")) {
                 System.out.println("Closing the game!");
                 exit = true;
                 break;
@@ -113,6 +138,8 @@ public final class GameEngine {
         }
         return exit;
     }
+
+
 
     private static void computerTurn(Chessboard chessboard, boolean isWhiteTurn) {
         System.out.println("-------------------------------------------");
