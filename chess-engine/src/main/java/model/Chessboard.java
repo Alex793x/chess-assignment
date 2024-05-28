@@ -12,7 +12,6 @@ import java.util.Scanner;
 @Setter
 @NoArgsConstructor
 public class Chessboard {
-    //Fen String generator
 
     char[][] board;
     private long hash;
@@ -82,7 +81,7 @@ public class Chessboard {
             return false;
         }
 
-        // Update the hash for the move
+
         hash ^= ZobristHashing.getPieceHash(fromNum, fromChar, piece);
         hash ^= ZobristHashing.getPieceHash(toNum, toChar, board[toNum][toChar]);
         hash ^= ZobristHashing.getPieceHash(toNum, toChar, piece);

@@ -15,9 +15,8 @@ public class MoveEvaluationResult {
 
     @Override
     public String toString() {
-        return "MinMaxResult{" +
-                "evaluation=" + evaluation +
-                ", bestMove=" + bestMove +
-                '}';
+        return "MOVE EVALUATION RESULT \n" +
+                "evaluation: " + evaluation + "\n" +
+                "bestMove: " + bestMove;
     }
 }

@@ -144,7 +144,7 @@ public final class GameEngine {
     private static void computerTurn(Chessboard chessboard, boolean isWhiteTurn) {
         System.out.println("-------------------------------------------");
         System.out.println("The computer is thinking about its move. Hold up...");
-        Engine engine = new Engine(chessboard.getBoard(), 6);
+        Engine engine = new Engine(chessboard.getBoard(), 5);
         chessboard.setBoard(engine.bestMove(isWhiteTurn));
         System.out.println("The computer has completed its move, board updated: ");
         printBoard(chessboard.getBoard());

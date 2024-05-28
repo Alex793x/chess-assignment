@@ -26,10 +26,9 @@ public class MoveResult {
 
     @Override
     public String toString() {
-        return "MoveResult{" +
-                "validMoves=" + validMoves +
-                ", validCaptures=" + validCaptures +
-                ", promotionMoves=" + promotionMoves +
-                '}';
+        return "MOVE RESULT" +
+                "validMoves:" + validMoves + "\n" +
+                "validCaptures: " + validCaptures + "\n" +
+                "promotionMoves: " + promotionMoves;
     }
 }

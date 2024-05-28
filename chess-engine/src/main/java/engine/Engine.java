@@ -30,7 +30,7 @@ public class Engine {
     public MoveEvaluationResult alphaBeta(int depth, int alpha, int beta, boolean maximizingPlayer) {
         long zobristHash = computeZobristHash();
 
-        // Check the transposition table
+        // First the transposition table is checked to see if the current position has been evaluated before
         if (transpositionTable.containsKey(zobristHash)) {
             TranspositionTableEntry entry = transpositionTable.get(zobristHash);
             if (entry.getDepth() >= depth) {
@@ -52,7 +52,8 @@ public class Engine {
 
         if (depth == 0) {
             int evaluation = new PieceEvaluator().evaluate(board);
-            transpositionTable.put(zobristHash, new TranspositionTableEntry(evaluation, depth, TranspositionTableEntryType.EXACT));
+            transpositionTable.put(zobristHash,
+                    new TranspositionTableEntry(evaluation, depth, TranspositionTableEntryType.EXACT));
             return new MoveEvaluationResult(evaluation, null);
         }
 
@@ -76,7 +77,8 @@ public class Engine {
                     break;
                 }
             }
-            TranspositionTableEntryType type = (maxEval <= alphaOrig) ? TranspositionTableEntryType.UPPERBOUND : ((maxEval >= beta) ? TranspositionTableEntryType.LOWERBOUND : TranspositionTableEntryType.EXACT);
+            TranspositionTableEntryType type = (maxEval <= alphaOrig) ? TranspositionTableEntryType.UPPERBOUND :
+                    ((maxEval >= beta) ? TranspositionTableEntryType.LOWERBOUND : TranspositionTableEntryType.EXACT);
             transpositionTable.put(zobristHash, new TranspositionTableEntry(maxEval, depth, type));
             return new MoveEvaluationResult(maxEval, bestMove);
         } else {
@@ -95,7 +97,8 @@ public class Engine {
                     break;
                 }
             }
-            TranspositionTableEntryType type = minEval <= alphaOrig ? TranspositionTableEntryType.UPPERBOUND : TranspositionTableEntryType.LOWERBOUND;
+            TranspositionTableEntryType type = minEval <= alphaOrig ? TranspositionTableEntryType.UPPERBOUND
+                    : TranspositionTableEntryType.LOWERBOUND;
             transpositionTable.put(zobristHash, new TranspositionTableEntry(minEval, depth, type));
             return new MoveEvaluationResult(minEval, bestMove);
         }
@@ -131,7 +134,7 @@ public class Engine {
         board[newSpace[0]][newSpace[1]] = piece;
         board[oldSpace[0]][oldSpace[1]] = ' ';
 
-        // Handle castling move
+        // Castling Move
         if (piece == 'K' || piece == 'k') {
             if (Math.abs(newSpace[1] - oldSpace[1]) == 2) {
                 if (newSpace[1] == 6) { // King side castling
