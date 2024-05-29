@@ -55,7 +55,6 @@ public final class GameEngine {
         String side = chooseSide(scanner);
         boolean isWhiteSide = side.equals("WHITE");
 
-        // Game loop
         boolean exit = false;
         while (!exit) {
             printBoard(chessboard.getBoard());
@@ -144,7 +143,7 @@ public final class GameEngine {
     private static void computerTurn(Chessboard chessboard, boolean isWhiteTurn) {
         System.out.println("-------------------------------------------");
         System.out.println("The computer is thinking about its move. Hold up...");
-        Engine engine = new Engine(chessboard.getBoard(), 5);
+        Engine engine = new Engine(chessboard.getBoard(), 6,0,0,0);
         chessboard.setBoard(engine.bestMove(isWhiteTurn));
         System.out.println("The computer has completed its move, board updated: ");
         printBoard(chessboard.getBoard());

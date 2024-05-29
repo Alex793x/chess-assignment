@@ -86,14 +86,14 @@ public class Chessboard {
         hash ^= ZobristHashing.getPieceHash(toNum, toChar, board[toNum][toChar]);
         hash ^= ZobristHashing.getPieceHash(toNum, toChar, piece);
 
-        // Handle pawn promotion
+        // Pawn Promotion
         if (piece == 'P' && toNum == 0) {
             piece = handlePromotion(isWhiteTurn);
         } else if (piece == 'p' && toNum == 7) {
             piece = handlePromotion(isWhiteTurn);
         }
 
-        // Move the piece
+        // Piece is moved
         board[fromNum][fromChar] = ' ';
         board[toNum][toChar] = piece;
 

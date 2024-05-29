@@ -27,10 +27,16 @@ public class Engine {
     public char[][] board;
     public int maxDepth;
 
+
+    private int totalEvaluatedNodes;
+    private int nodesAtFirstLevel;
+    private int prunedNodes;
+
     public MoveEvaluationResult alphaBeta(int depth, int alpha, int beta, boolean maximizingPlayer) {
+
         long zobristHash = computeZobristHash();
 
-        // First the transposition table is checked to see if the current position has been evaluated before
+        // Check transposition table
         if (transpositionTable.containsKey(zobristHash)) {
             TranspositionTableEntry entry = transpositionTable.get(zobristHash);
             if (entry.getDepth() >= depth) {
@@ -45,21 +51,27 @@ public class Engine {
                         break;
                 }
                 if (alpha >= beta) {
+                    prunedNodes++;
                     return new MoveEvaluationResult(entry.getEvaluation(), null);
                 }
             }
         }
 
+        // Node Evaluation
         if (depth == 0) {
+            totalEvaluatedNodes++;
             int evaluation = new PieceEvaluator().evaluate(board);
-            transpositionTable.put(zobristHash,
-                    new TranspositionTableEntry(evaluation, depth, TranspositionTableEntryType.EXACT));
+            transpositionTable.put(zobristHash, new TranspositionTableEntry(evaluation, depth, TranspositionTableEntryType.EXACT));
             return new MoveEvaluationResult(evaluation, null);
         }
 
         MoveResult moveResult = generatePossibleMoves(maximizingPlayer, board);
         Move bestMove = null;
         int alphaOrig = alpha;
+
+        if (depth == maxDepth) {
+            nodesAtFirstLevel += moveResult.getValidMoves().size(); // Antallet af noder i første niveau
+        }
 
         if (maximizingPlayer) {
             int maxEval = Integer.MIN_VALUE;
@@ -74,11 +86,11 @@ public class Engine {
                 }
                 alpha = Math.max(alpha, eval);
                 if (beta <= alpha) {
+                    prunedNodes++;
                     break;
                 }
             }
-            TranspositionTableEntryType type = (maxEval <= alphaOrig) ? TranspositionTableEntryType.UPPERBOUND :
-                    ((maxEval >= beta) ? TranspositionTableEntryType.LOWERBOUND : TranspositionTableEntryType.EXACT);
+            TranspositionTableEntryType type = (maxEval <= alphaOrig) ? TranspositionTableEntryType.UPPERBOUND : ((maxEval >= beta) ? TranspositionTableEntryType.LOWERBOUND : TranspositionTableEntryType.EXACT);
             transpositionTable.put(zobristHash, new TranspositionTableEntry(maxEval, depth, type));
             return new MoveEvaluationResult(maxEval, bestMove);
         } else {
@@ -94,11 +106,11 @@ public class Engine {
                 }
                 beta = Math.min(beta, eval);
                 if (beta <= alpha) {
+                    prunedNodes++;
                     break;
                 }
             }
-            TranspositionTableEntryType type = minEval <= alphaOrig ? TranspositionTableEntryType.UPPERBOUND
-                    : TranspositionTableEntryType.LOWERBOUND;
+            TranspositionTableEntryType type = minEval <= alphaOrig ? TranspositionTableEntryType.UPPERBOUND : TranspositionTableEntryType.LOWERBOUND;
             transpositionTable.put(zobristHash, new TranspositionTableEntry(minEval, depth, type));
             return new MoveEvaluationResult(minEval, bestMove);
         }
@@ -113,10 +125,17 @@ public class Engine {
     }
 
     public char[][] bestMove(boolean isWhiteTurn) {
+        totalEvaluatedNodes = 0;
+        nodesAtFirstLevel = 0;
+        prunedNodes = 0;
+
         MoveEvaluationResult bestResult = alphaBeta(maxDepth, Integer.MIN_VALUE, Integer.MAX_VALUE, isWhiteTurn);
         System.out.println(bestResult);
         makeMove(bestResult.getBestMove());
 
+        System.out.println("Total Evaluated Nodes: " + totalEvaluatedNodes);
+        System.out.println("Nodes at First Level: " + nodesAtFirstLevel);
+        System.out.println("Pruned Nodes: " + prunedNodes);
         return board;
     }
 
