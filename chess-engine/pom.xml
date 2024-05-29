@@ -88,7 +88,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>Main</mainClass>
+                            <mainClass>Main.java</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -103,7 +103,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>Main</mainClass>
+                            <mainClass>Main.java</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
